@@ -52,17 +52,18 @@ doc = contains paper, labbook and other documentation.
 
 # Subproject 0: Pre-Processing
 **Aim**:  
-To make sure data is in a form that is usable in all future steps. 
+To make sure data is suitable for future steps, by giving overview of demographics and data available.
+Also Cell Mix is performed to make sure everything is okay down the line.
 
 **Script_Strategy:**  
   
-1. *p0_preproc_dataframes_15_09_2016.Rmd*
-+ List of NuIDs of expressed probes with duplicates removed. (Keep Probe with highest average expression.)  
-+ List of all expressed and unexpressed probes, with duplicates removed, but expressed probes kept. (if duplicate expressed and unexpressed probe by Gene Symbol remove unexpressed)  
+1. *p0_characterise_GAP_FEP_data_03_11_2016.Rmd*
++ Characterise cohort. Plot demographics, make tables, do stats.
+1. *p0_CellMix_GAP_FEP_data_03_11_2016.Rmd*
++ apply cellmix to identify poetential confounders from cell proportions. 
 
 **Output:**  
-exprs_data = Dataframe of expressed Probes for usable samples as Symbols
-pheno_data = processed Pheno data. 
+
 
 
 # Subproject 1: Diff Expression
@@ -78,11 +79,6 @@ LumiBatch object.
 1. *p1_limma_03_11_2016.Rmd*
 + Script that does limma.  
   
-2. *p1_lee_learning_15_09_2016.Rmd*
-+ Script that createst machine learning classifiers and saves results.  
-  
-3. *p1_lee_report_15_09_2016.Rmd*
-+ Script that uses the output from the learning script and creates a report with figures and interpretation. 
 
 **Output:**  
 List of expressed probes no duplicates for all samples.  
@@ -137,7 +133,7 @@ The Main Dataset is the Genes and Psychosis Data internal to the IoPPN.
 The following files are associated to this Data.  
 
 File: **Full Gene Expression Object**  
-*GAP_Full_Gene_Expression_Data.RData*  
+*GAP_FEP_Full_Gene_Expression_Data.RData*  
 Description:
 This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation, surrogate variable analysis.
 

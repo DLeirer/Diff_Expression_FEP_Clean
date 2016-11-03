@@ -1,0 +1,233 @@
+LIMMA Script
+============
+
+
+## Set directories
+```{r set directories, eval=TRUE, tidy=TRUE}
+base_dir<-getwd()
+
+phenodir <-paste(base_dir,"/GAP_Data/Covariate_Data",sep="")
+datadir <- paste(base_dir,"/GAP_Data/Gene_Expression_Lumi_Batch_file",sep="")
+workdir <- paste(base_dir,"/Diff_Expression_paper_Full_24_02_2016/LIMMA",sep="")
+outputdir <-paste(base_dir,"/LIMMA/Results_for_paper",sep="") 
+
+```
+
+## Load Libaries
+```{r load_libs, tidy=TRUE}
+library(lumi)
+library(limma)
+library(xtable)
+library(dplyr)
+```
+
+
+## Load eset
+```{r load_eset, tidy=TRUE}
+#Load Gene expression data in Lumi batch object
+setwd(datadir)
+exprs<-read.table("GAP_FEP_processing_data.txt",header=T,check.names=F)
+
+
+load("GAP_DL_FEP.eset_bg.RData")
+probetranslator<-eset_bg@featureData@data
+
+
+?read.table
+
+setwd(phenodir)
+#Load Pheno Data
+GAP_full <- read.csv("medication_Panss_data_file_djl.csv", head=TRUE, sep=",",na.string=c("NA"),as.is=T)
+```
+
+
+
+## Prepare and Tidy up covarietes
+```{r}
+
+#Create expression set
+t_exprs<-t(exprs)
+
+#Using Hamels probes
+Gene_symbols_probes <- mappedkeys(eval(parse(text = paste(expression_chip, "SYMBOL", sep=""))))
+Gene_symbols <- as.data.frame(eval(parse(text = paste(expression_chip, "SYMBOL", sep="")))[Gene_symbols_probes])
+mapped_probes <- mappedkeys(eval(parse(text = paste(expression_chip, "ENTREZID", sep=""))))
+probe_entrez_mapping <- as.data.frame(eval(parse(text = paste(expression_chip, "ENTREZID", sep="")))[mapped_probes])
+
+#merge
+translate<-merge(probe_entrez_mapping,Gene_symbols,by="probe_id")
+
+#remove duplicates
+translate_small<-translate[translate$gene_id%in%rownames(t_exprs),]
+translate_smaler<-translate_small[!duplicated(translate_small[ ,2 ]),]
+
+#subset expression
+t_exprs<-t_exprs[rownames(t_exprs)%in%translate_smaler$gene_id,]
+t_exprs<-t_exprs[translate_smaler$gene_id,]
+
+rownames(t_exprs)<-translate_smaler$symbol
+
+
+
+#subset gap and exprs
+Phenotype<-as.factor(GAP_full$Phenotype)
+
+design = model.matrix(~0+ Pheno + Age)
+
+fit= lmFit(t_exprs,design)
+
+
+
+
+```
+
+
+## create design matrix
+```{r LIMMA Design}
+
+#Prepare covariates
+gap <- factor(neweset2$Phenotype)
+gap_SEX <- factor(neweset2$gender)
+gap_ethnicity <- factor(neweset2$ethnicity)
+gap_Age <- as.numeric(neweset2$age)
+Tc <- as.numeric(neweset2$Tc)
+B.aIgM <- as.numeric(neweset2$Mem.IgG)
+Mem.IgG <- as.numeric(neweset2$Mem.IgG)
+NK <- as.numeric(neweset2$NK)
+mono <- as.numeric(neweset2$mono)
+mono.act <- as.numeric(neweset2$mono.act)
+neutro <- as.numeric(neweset2$neutro)
+
+design = model.matrix(~0+gap+gap_SEX+gap_ethnicity+gap_Age, data=neweset2)  
+#design = model.matrix(~0+gap+gap_SEX+gap_ethnicity+gap_Age+Tc+B.aIgM+Mem.IgG+NK+mono+mono.act+neutro, data=neweset2)
+```
+
+
+## Limma lmFit
+```{r limma_lmFit, tidy=TRUE}
+
+fit <- lmFit(neweset2, design)
+
+
+```
+
+## Limma makeContrasts 
+
+```{r limma_makeContrasts, tidy=TRUE}
+contrasts <- makeContrasts(PhenoFEP-Phenocontrol, levels=design)
+```
+
+
+
+## Limma eBayes on makeContrasts
+
+```{r limma_eBayes_on_makeContrasts, tidy=TRUE}
+contrast.fit1 <- contrasts.fit(fit, contrasts)
+contrast.fit1 <- eBayes(contrast.fit1)
+
+
+```
+
+```{r limma_topTable, comment=NA, width=100, tidy=TRUE}
+# Limma topTabl
+top_de_genes1 <- topTable(contrast.fit1, coef=1, number=10000,adjust.method="fdr",p.value=1,confint=TRUE)
+
+# tidy up
+top_de_genes1$logFC <- round(top_de_genes1$logFC,2)
+top_de_genes1$CI.L <- round(top_de_genes1$CI.L,2)
+top_de_genes1$CI.R <- round(top_de_genes1$CI.R,2)
+top_de_genes1$AveExpr <- round(top_de_genes1$AveExpr,2)
+top_de_genes1$t <- round(top_de_genes1$t,2)
+top_de_genes1$P.Value <- signif(top_de_genes1$P.Value,3)
+top_de_genes1$adj.P.Val <- signif(top_de_genes1$adj.P.Val,3)
+top_de_genes1$B <- round(top_de_genes1$B,2)
+
+# Limma topTable reduce cols
+top_de_genes_small1 <- top_de_genes1[,c("SYMBOL","logFC","P.Value","adj.P.Val","B")]
+str(top_de_genes1)
+
+# Save t
+write.table(top_de_genes_small1, file="all_probes_limma_fdr_small_27_02_2016.csv",row.names=F,quote=FALSE,sep = ";")
+write.table(top_de_genes1, file="all_probes_limma_fdr_27_02_2016.csv",row.names=F,quote=FALSE,sep = ";")
+
+```
+
+
+
+##Volcano Plot
+```{r}
+# Make a basic volcano plot
+library(Tmisc)
+library(calibrate)
+top_de_genes_vol <- topTable(contrast.fit1, coef=1, number=5000,adjust.method="fdr",p.value=1,confint=TRUE, sort.by="logFC")
+top_de_genes_vol$TargetID<-rownames(top_de_genes_vol)
+getwd()
+
+#save plot
+jpeg(file = "Volcanoplot_LIMMA_For_paper_FEP.jpeg", pointsize = 20, width = 1000, height = 1000)
+with(top_de_genes_vol, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-1,1)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(top_de_genes_vol, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+with(subset(top_de_genes_vol, adj.P.Val <0.05 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(top_de_genes_vol, logFC <= 0.138 & logFC >= -0.152 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+
+
+    
+# Label points with the textxy function from the calibrate plot
+#with(top_de_genes_vol [c(1,3,5),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+#with(top_de_genes_vol [58,], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = 1.1))
+with(subset(top_de_genes_vol, logFC >0.6 & logFC < 1 & adj.P.Val <0.05), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(subset(top_de_genes_vol, logFC < -0.5 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(top_de_genes_vol, adj.P.Val <0.00000001), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+dev.off()
+
+
+
+str(top_de_genes_vol)
+top_de_genes_vol$ProbeID [1:4]
+
+
+
+
+subset(top_de_genes_vol, ProbeID  )
+?subset
+```
+
+
+
+
+## User List Enrichement
+```{r gene_list}
+library(WGCNA)
+
+all_probes <- top_de_genes_vol 
+all_probes2 <-top_de_genes1
+
+#Subset to pvalue 0.05
+all_probes$Groups <-all_probes$adj.P.Val <= 0.05
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
+
+enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,useBloodAtlases=T,useBrainLists=T,useStemCellLists=F, useBrainRegionMarkers=F, useImmunePathwayLists=F,usePalazzoloWang=F)
+
+enpv<-enrichments$pValue
+
+write.csv(enpv[order(enpv$Type,enpv$Pvalues),],file="GAP_all_enrichmennts_brain_blood.csv")
+
+
+#Subset to logfc 0.1
+all_probes2$Groups <-all_probes2$adj.P.Val <= 0.05 & !(all_probes2$logFC <= 0.1 & all_probes2$logFC >= -0.1 )
+all_probes2$Groups<-replace(all_probes2$Groups, all_probes2$Groups==FALSE, "background")
+all_probes2$Groups<-replace(all_probes2$Groups, all_probes2$Groups==TRUE, "FDR_Pass")
+
+
+enrichments = userListEnrichment(all_probes2$TargetID,all_probes2$Groups,useBloodAtlases=T,useBrainLists=T,useStemCellLists=F, useBrainRegionMarkers=F, useImmunePathwayLists=F,usePalazzoloWang=F)
+
+
+enpv<-enrichments$pValue
+
+write.csv(enpv[order(enpv$Type,enpv$Pvalues),],file="GAP_all_enrichmennts_with_logFC_brain_blood.csv")
+
+
+```
