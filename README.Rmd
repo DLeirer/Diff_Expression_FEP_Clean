@@ -1,0 +1,210 @@
+---
+title: "README_diff_expression_Project"
+author: "DJL"
+date: "15/09/2016"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float: yes
+  word_document: default
+---
+
+#Project Overview
+This Project is part of Daniel Leirer's PhD. I work primarily with the Genes and Psychosis data from the IoPPN. The aim is to identify differentially expressed genes and networks. 
+
+
+
+#Folder Structure
+
+proj/  
+├── P0_Pre_Proc/  
+│└── output/  
+├┬─ P1_Diff_Ex/  
+│├── figs/  
+│└── output/  
+├┬─ P2_WGCNA/  
+│├── figs/  
+│└── output/  
+├┬─ P3_Enrichment/  
+│├── figs/  
+│└── output/  
+├┬─ P4_Other_data/  
+│├── figs/  
+│└── output/  
+├── R/  
+├── data/  
+└── doc/  
+
+---
+┼┘┐┌└├┤┴┬│─
+---
+
+**Directory Function:**  
+root directory = contains README and Project files for version control.  
+P0-PXX = subproject directories  
+figs = contains figures for subproject  
+output = contains output files from subproject.  
+R = Contains Scripts  
+data = contains all data (with exception of large data frames. Uploaded on Google Drive.)  
+doc = contains paper, labbook and other documentation.  
+
+# Subproject 0: Pre-Processing
+**Aim**:  
+To make sure data is in a form that is usable in all future steps. 
+
+**Script_Strategy:**  
+  
+1. *p0_preproc_dataframes_15_09_2016.Rmd*
++ List of NuIDs of expressed probes with duplicates removed. (Keep Probe with highest average expression.)  
++ List of all expressed and unexpressed probes, with duplicates removed, but expressed probes kept. (if duplicate expressed and unexpressed probe by Gene Symbol remove unexpressed)  
+
+**Output:**  
+exprs_data = Dataframe of expressed Probes for usable samples as Symbols
+pheno_data = processed Pheno data. 
+
+
+# Subproject 1: Diff Expression
+**Aims:**   
+Differential Expression adjusting for Ethnciity Age and Gender using Limma.
+
+**Input:**  
+LumiBatch object.  
+
+
+**Script_Strategy:**    
+  
+1. *p1_limma_03_11_2016.Rmd*
++ Script that does limma.  
+  
+2. *p1_lee_learning_15_09_2016.Rmd*
++ Script that createst machine learning classifiers and saves results.  
+  
+3. *p1_lee_report_15_09_2016.Rmd*
++ Script that uses the output from the learning script and creates a report with figures and interpretation. 
+
+**Output:**  
+List of expressed probes no duplicates for all samples.  
+List of unexpressed probes no duplicates.  
+Differentially Expressed Genes.
+Figures Volcano Plot.  
+
+
+# Subproject 2: WGCNA  
+
+**Aims:**   
+WGCNA to identify modules.
+
+**Input:**  
+Lumibatch Object  
+
+**Script_Strategy:**    
+
+
+1. *p2_GAP_Feature_Selection_15_10_02.Rmd*  
++ Script for WGCNA.
+
+
+**Output:**  
+Figures .  
+Files . 
+
+
+
+# Subproject 3: Impact
+
+# Subproject 4: Other Data
+
+
+#Data Files
+---
+####File template####
+File: ****  
+**  
+
+Description:  
+
+
+Source file name: 
+**  
+
+Source:  
+---
+
+##Genes and Psychosis (GAP)
+The Main Dataset is the Genes and Psychosis Data internal to the IoPPN.  
+The following files are associated to this Data.  
+
+File: **Full Gene Expression Object**  
+*GAP_Full_Gene_Expression_Data.RData*  
+Description:
+This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation, surrogate variable analysis.
+
+Source file name:  
+*FINAL_GAP_DL_FEP.eset_bg_log2_rsn_SVA_Good.RData*  
+Source:  
+Daniel Leirer  
+Daniel.Leirer@kcl.ac.uk
+
+
+##The following files are sources for various parts of the data in the Lumibatch Object
+
+File: **Demographic Data GAP**  
+*Basic_Demographics_GAP.csv*  
+
+Description:  
+Data approved by Marta Di Forti. Contains gene expression data, demographics etc. Age, Sex, Phenotype etc. 
+
+
+Source file name: 
+*GAP_full_final_expression_database_22_04_2015_Dan_Marta_consent.csv*  
+
+Source:  
+Daniel Leirer created this document.
+Information from various sources within GAP. 
+
+File: **GAP Master Database**  
+*GAP_large_demographic_database_16_Oct_2014.sav*  
+
+Description:  
+Huge database containing a lot of information including PANSS data. This is a secordary database. 
+
+Source file name: 
+*Master_database_GAP_UPDATE_16_Oct_2014.sav*  
+
+Source:  
+GAP team. Contact Robin Murray, Marta Di Forti, or people working in the Psychosis department. 
+
+
+File: **Medication Data**  
+*Daniel_RNA_DQ.csv*  
+
+Description:  
+Medication Data, Weight, Smoking, Some Demographics. 
+
+Source:  
+Diego Quattrone compiled this file. 
+diego.quattrone@kcl.ac.uk
+
+
+#Acknoledgements
+
+The Following people are involved in this project
+
+Name: Daniel Leirer
+Role: PhD Student
+Email: daniel.leirer@kcl.ac.uk
+
+Name: Dr. Stephen Newhouse
+Role: Main Supervisor
+Email: stephen.j.newhouse@gmail.com
+
+Name: Professor Richard Dobson
+Role: Primary Supervisor
+Email: richard.j.dobson@kcl.ac.uk
+
+Name: Sir Professor Robin Murray
+Role: Clinical Supervisor
+Email: N/A
+
