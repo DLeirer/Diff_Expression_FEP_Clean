@@ -65,7 +65,7 @@ load(paste(data_dir,"GAP_FEP_Full_Gene_Expression_Data.RData",sep=""))
 
 ```
 
-## create design matrix
+## Limma
 ```{r LIMMA Design}
 
 #Prepare covariates
@@ -75,67 +75,113 @@ gap_gender <- factor(eset_bg_log2_rsn_SVA_Good$Gender)
 gap_age <-as.numeric(eset_bg_log2_rsn_SVA_Good$Age)
 gap_ethnicity <-factor(eset_bg_log2_rsn_SVA_Good$Ethnicity)
 
-
+#Design Matrix
 design = model.matrix(~0+gap+gap_gender+gap_ethnicity+gap_age)  
 
-```
-
-
 ## Limma lmFit
-```{r limma_lmFit, tidy=TRUE}
-
 fit <- lmFit(eset_bg_log2_rsn_SVA_Good, design)
 
-
-```
-
 ## Limma makeContrasts 
-
-```{r limma_makeContrasts, tidy=TRUE}
 contrasts <- makeContrasts(gapFEP-gapcontrol, levels=design)
-```
-
-
 
 ## Limma eBayes on makeContrasts
-
-```{r limma_eBayes_on_makeContrasts, tidy=TRUE}
-contrast.fit1 <- contrasts.fit(fit, contrasts)
-contrast.fit1 <- eBayes(contrast.fit1)
+contrast.fit <- contrasts.fit(fit, contrasts)
+contrast.fit <- eBayes(contrast.fit)
 
 
 ```
 
+#Top Table
 ```{r limma_topTable, comment=NA, width=100, tidy=TRUE}
 # Limma topTabl
-top_de_genes1 <- topTable(contrast.fit1, coef=1, number=10000,adjust.method="fdr",p.value=1,confint=TRUE)
+top_de_genes <- topTable(contrast.fit1, coef=1, number=10000,adjust.method="fdr",p.value=1,confint=TRUE)
 
-names(top_de_genes1)
+names(top_de_genes)
 
 # tidy up
-top_de_genes1$logFC <- round(top_de_genes1$logFC,2)
-top_de_genes1$CI.L <- round(top_de_genes1$CI.L,2)
-top_de_genes1$CI.R <- round(top_de_genes1$CI.R,2)
-top_de_genes1$AveExpr <- round(top_de_genes1$AveExpr,2)
-top_de_genes1$t <- round(top_de_genes1$t,2)
-top_de_genes1$P.Value <- signif(top_de_genes1$P.Value,3)
-top_de_genes1$adj.P.Val <- signif(top_de_genes1$adj.P.Val,3)
-top_de_genes1$B <- round(top_de_genes1$B,2)
+top_de_genes$logFC <- round(top_de_genes$logFC,2)
+top_de_genes$CI.L <- round(top_de_genes$CI.L,2)
+top_de_genes$CI.R <- round(top_de_genes$CI.R,2)
+top_de_genes$AveExpr <- round(top_de_genes$AveExpr,2)
+top_de_genes$t <- round(top_de_genes$t,2)
+top_de_genes$P.Value <- signif(top_de_genes$P.Value,3)
+top_de_genes$adj.P.Val <- signif(top_de_genes$adj.P.Val,3)
+top_de_genes$B <- round(top_de_genes$B,2)
 
-# Limma topTable reduce cols
-top_de_genes_small1 <- top_de_genes1[,c("SYMBOL","logFC","P.Value","adj.P.Val","B")]
-str(top_de_genes1)
-str(top_de_genes_small1)
-top_de_genes_small1[grep("",top_de_genes_small1[,1]),]
-?sort
-filter(top_de_genes_small1,logFC<=-0.24)
 
-# Save t
-write.table(top_de_genes_small1, file="all_probes_limma_fdr_small_27_02_2016.csv",row.names=F,quote=FALSE,sep = ";")
-write.table(top_de_genes1, file="all_probes_limma_fdr_27_02_2016.csv",row.names=F,quote=FALSE,sep = ";")
+##Save full dataframe
+full_limma_results_AgeSexEthnicity_Adj <- top_de_genes
+write.table(full_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"full_limma_results_AgeSexEthnicity_Adj.tsv"),row.names=FALSE,quote=FALSE,sep = "\t")
+
+##Save Reduced dataframe
+small_limma_results_AgeSexEthnicity_Adj <- top_de_genes[,c("TargetID","logFC","P.Value","adj.P.Val","CHROMOSOME","DEFINITION")]
+write.table(small_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"small_limma_results_AgeSexEthnicity_Adj.tsv"),row.names=FALSE,quote=FALSE,sep = "\t")
+
 
 ```
 
+
+#### Significantly DE Probes
+
+```{r}
+
+
+de_res <- top_de_genes
+
+de_res <- de_res %>% 
+  mutate(SIG_DE=adj.P.Val <=0.05, 
+         LogFC_DIRECTION=ifelse(logFC >= 0, "up-regulated",
+                          ifelse(logFC < 0, "down-regulated", "no-change")),
+         LogFC_BIOLOCICAL=ifelse(logFC >= 0.1, "up-regulated",
+                         ifelse(logFC <= -0.1, "down-regulated", "no-sig-change")),
+         PROBE_KEEP=ifelse( grepl("^LOC",TargetID),"DROP",
+                       ifelse( grepl("^HS\\.",TargetID), "DROP","KEEP"))
+         )
+      
+## Significantly DE Probes
+datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
+
+## Number of probes
+table(datatoplot$PROBE_KEEP)
+
+## Number of significant probes
+table(datatoplot$adj.P.Val <= 0.05)
+
+##All probes
+write.table(de_res, file=paste(P1_output_dir,"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+##Significant probes
+datatoplot_sig<-datatoplot[datatoplot$adj.P.Val <= 0.05,]
+dim(datatoplot_sig)
+write.table(datatoplot_sig, file=paste(P1_output_dir,"Supplementary_Table_2_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+##upregulated
+datatoplot_sig_up<-datatoplot_sig[datatoplot_sig$logFC > 0,]
+dim(datatoplot_sig_up)
+write.table(datatoplot_sig_up, file=paste(P1_output_dir,"Supplementary_Table_3_upregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+
+table1up<-datatoplot_sig_up[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
+
+table1up$logFC<-signif(table1up$logFC,2)
+table1up$adj.P.Val<-signif(table1up$adj.P.Val,2)
+
+write.table(table1up, file=paste(P1_output_dir,"Table_1_upregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+
+##downregulated
+datatoplot_sig_down<-datatoplot_sig[datatoplot_sig$logFC < 0,]
+dim(datatoplot_sig_down)
+write.table(datatoplot_sig_down, file=paste(P1_output_dir,"Supplementary_Table_5_downregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+table2down<-datatoplot_sig_down[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
+
+table2down$logFC<-signif(table2down$logFC,2)
+table2down$adj.P.Val<-signif(table2down$adj.P.Val,2)
+
+write.table(table2down, file=paste(P1_output_dir,"Table_2_downregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
+```
 
 
 ##Volcano Plot
@@ -143,73 +189,40 @@ write.table(top_de_genes1, file="all_probes_limma_fdr_27_02_2016.csv",row.names=
 # Make a basic volcano plot
 library(Tmisc)
 library(calibrate)
-top_de_genes_vol <- topTable(contrast.fit1, coef=1, number=5000,adjust.method="fdr",p.value=1,confint=TRUE, sort.by="logFC")
 
-#save plot
-jpeg(file = "Volcanoplot_LIMMA_For_paper_FEP.jpeg", pointsize = 20, width = 1000, height = 1000)
-with(top_de_genes_vol, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-1,1.5)))
+filename <- "Volcanoplot.jpeg"
+jpeg(file = paste(P1_figs_dir,filename,sep=""), pointsize = 20, width = 1500, height = 1300)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
 
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
-with(subset(top_de_genes_vol, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
-with(subset(top_de_genes_vol, adj.P.Val <0.05 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
-with(subset(top_de_genes_vol, logFC <= 0.138 & logFC >= -0.152 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
-
-
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
     
 # Label points with the textxy function from the calibrate plot
-#with(top_de_genes_vol [c(1,3,5),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
-#with(top_de_genes_vol [58,], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = 1.1))
-with(subset(top_de_genes_vol, logFC >0.4 & logFC < 2 & adj.P.Val <0.05), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
-with(subset(top_de_genes_vol, logFC < -0.4 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
-with(subset(top_de_genes_vol, adj.P.Val <0.00007), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(datatoplot [c(6:10),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(subset(datatoplot, logFC < -0.27 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+dev.off()
+
+filename <- "Volcanoplot.pdf"
+pdf(paste(P1_figs_dir,filename,sep=""), width = 15, height = 15,pointsize=10)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+    
+# Label points with the textxy function from the calibrate plot
+with(datatoplot [c(6:10),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(subset(datatoplot, logFC < -0.27 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
 dev.off()
 
 
 
-str(top_de_genes_vol)
-top_de_genes_vol$ProbeID [1:4]
-
-
-
-
-subset(top_de_genes_vol, ProbeID  )
-?subset
 ```
 
 
 
-
-## User List Enrichement
-```{r gene_list}
-library(WGCNA)
-
-all_probes <- top_de_genes_vol 
-all_probes2 <-top_de_genes1
-
-#Subset to pvalue 0.05
-all_probes$Groups <-all_probes$adj.P.Val <= 0.05
-all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
-all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
-
-enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,useBloodAtlases=T,useBrainLists=T,useStemCellLists=F, useBrainRegionMarkers=F, useImmunePathwayLists=F,usePalazzoloWang=F)
-
-enpv<-enrichments$pValue
-
-write.csv(enpv[order(enpv$Type,enpv$Pvalues),],file="GAP_all_enrichmennts_brain_blood.csv")
-
-
-#Subset to logfc 0.1
-all_probes2$Groups <-all_probes2$adj.P.Val <= 0.05 & !(all_probes2$logFC <= 0.1 & all_probes2$logFC >= -0.1 )
-all_probes2$Groups<-replace(all_probes2$Groups, all_probes2$Groups==FALSE, "background")
-all_probes2$Groups<-replace(all_probes2$Groups, all_probes2$Groups==TRUE, "FDR_Pass")
-
-
-enrichments = userListEnrichment(all_probes2$TargetID,all_probes2$Groups,useBloodAtlases=T,useBrainLists=T,useStemCellLists=F, useBrainRegionMarkers=F, useImmunePathwayLists=F,usePalazzoloWang=F)
-
-
-enpv<-enrichments$pValue
-
-write.csv(enpv[order(enpv$Type,enpv$Pvalues),],file="GAP_all_enrichmennts_with_logFC_brain_blood.csv")
-
-
-```
