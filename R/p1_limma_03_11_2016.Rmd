@@ -147,6 +147,9 @@ table(datatoplot$PROBE_KEEP)
 ## Number of significant probes
 table(datatoplot$adj.P.Val <= 0.05)
 
+## Number if sig probes using B-statistic
+table(datatoplot$B > 0)
+
 ##All probes
 write.table(de_res, file=paste(P1_output_dir,"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
@@ -205,6 +208,7 @@ with(subset(datatoplot, logFC < -0.27 & adj.P.Val <0.05 ), textxy(logFC, -log10(
 with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
 dev.off()
 
+
 filename <- "Volcanoplot.pdf"
 pdf(paste(P1_figs_dir,filename,sep=""), width = 15, height = 15,pointsize=10)
 with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
@@ -221,6 +225,21 @@ with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(
 dev.off()
 
 
+#LogFC by chromosome
+title = "LogFC by Chromosome"
+ggplot(data = datatoplot, 
+      aes(x = CHROMOSOME, y=logFC, color=CHROMOSOME)) +
+      geom_boxplot(alpha = 0)+
+      geom_text(data=filter(datatoplot, logFC >= 0.3 |logFC <= -0.27),check_overlap = TRUE,angle=45,
+            aes(CHROMOSOME,logFC,label=SYMBOL))+
+      ggtitle(title)
+ggsave(paste(P1_figs_dir,title,".png",sep=""))
+
+table(datatoplot$CHROMOSOME)
+
+
+
+datatoplot %>% filter(CHROMOSOME == c(21)) $>$ PROBE_COORDINATES
 
 ```
 

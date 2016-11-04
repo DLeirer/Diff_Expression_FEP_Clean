@@ -19,7 +19,8 @@ This Project is part of Daniel Leirer's PhD. I work primarily with the Genes and
 #Folder Structure
 
 proj/  
-├── P0_Pre_Proc/  
+├── P0_Characterise/  
+│├── figs/  
 │└── output/  
 ├┬─ P1_Diff_Ex/  
 │├── figs/  
@@ -50,7 +51,7 @@ R = Contains Scripts
 data = contains all data (with exception of large data frames. Uploaded on Google Drive.)  
 doc = contains paper, labbook and other documentation.  
 
-# Subproject 0: Pre-Processing
+# Subproject 0: Characterise
 **Aim**:  
 To make sure data is suitable for future steps, by giving overview of demographics and data available.
 Also Cell Mix is performed to make sure everything is okay down the line.
@@ -98,7 +99,7 @@ Lumibatch Object
 **Script_Strategy:**    
 
 
-1. *p2_GAP_Feature_Selection_15_10_02.Rmd*  
+1. *p2_WGCNA_03_11_16.Rmd*  
 + Script for WGCNA.
 
 
@@ -108,7 +109,7 @@ Files .
 
 
 
-# Subproject 3: Impact
+# Subproject 3: 
 
 # Subproject 4: Other Data
 
