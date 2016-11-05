@@ -8,6 +8,8 @@ output: html_document
 
 ##Install and load Libraries:
 ```{r Libraries, message=FALSE,warning=FALSE}
+library(WGCNA);
+library(flashClust)
 
 ```
 
@@ -16,42 +18,33 @@ output: html_document
 ```{r directory}
 
 data_dir <-"./data/"
-P2_output_dir <-"./P0_Characterise/output/"
-P2_figs_dir <-"./P0_Characterise/figs/"
+P2_output_dir <-"./P2_WGCNA/output/"
+P2_figs_dir <-"./P2_WGCNA/figs/"
 
 ```
 
+##Load data and Settings
+```{r data and settings}
 
-```{r}
-# Set Directories
 
-phenodir <-"~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/GAP_Data/Covariate_Data" #phenotype directory
-datadir <- "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/GAP_Data/Gene_Expression_Lumi_Batch_file" #Data Directory containg lumibatch file with gene expression data.
-workingDir = "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/WGCNA/WGCNA_Results"
-setwd(workingDir)
-
-# Load the package
-library(WGCNA);
-library(flashClust)
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE);
 
-getwd()
-#load Gene expression data
-setwd(datadir)
-load("GAP_Lumibatch_Clean_09_05_2016.RData")
-setwd(workingDir);
 
-str(neweset2)
-neweset2 <- eset_bg_log2_rsn_SVA_Good
+data="GAP_FEP_Full_Gene_Expression_Data.RData"
+
+#load Gene expression data
+load(paste(data_dir,data,sep=""))
+
+
 
 # remove duplicate probes and use gene symbols
-gene<- t(exprs(neweset2))
-probenames<-neweset2@featureData@data
+gene<- t(exprs(eset_bg_log2_rsn_SVA_Good))
+probenames<-eset_bg_log2_rsn_SVA_Good@featureData@data
 colnames(gene) <- probenames$TargetID
-gene_small <- gene[, !duplicated(colnames(gene))]
-gene_expression_matrix<-t(gene_small)
-t_gene_expression_matrix<-gene_small
+gene<-gene[,probenames$good_probe]
+gene_expression_matrix<-t(gene)
+t_gene_expression_matrix<-gene
 
 dim(t_gene_expression_matrix)
 
@@ -61,30 +54,37 @@ gsg$allOK
 ```
 
 ##Loading Phenotype Data
-```{r}
+```{r load pheno}
+names(pData(eset_bg_log2_rsn_SVA_Good))
+allTraits<-pData(eset_bg_log2_rsn_SVA_Good)[,c(1,11:17,21:26,32:33)]
 
-allTraits<-neweset2@phenoData@data[,c(1,5,2,4)]
-
-## More traits removed
-colnames(allTraits)<-c("CHIP_ID","Phenotype","Age","Gender")
-
+## Change Tech Names
+colnames(allTraits)[13:16]<-c("RIN","SentrixBarcode","Nanodrop","AmplificationDate")
+colnames(allTraits)
 
 # Form a data frame analogous to expression data that will hold the clinical traits.
 samples = rownames(t_gene_expression_matrix);
-traitRows = match(samples, allTraits$CHIP_ID);
+traitRows = match(samples, allTraits$sampleID);
 datTraits = allTraits[traitRows, -1];
 rownames(datTraits) = allTraits[traitRows, 1];
 collectGarbage();
+str(datTraits)
 datTraits$Phenotype<-as.numeric(as.factor(datTraits$Phenotype))
 datTraits$Gender<-as.numeric(as.factor(datTraits$Gender))
-
+datTraits$Ethnicity<-as.numeric(as.factor(datTraits$Ethnicity))
+datTraits$Tobacco<-as.numeric(as.factor(datTraits$Tobacco))
+datTraits$Medication<-as.numeric(as.factor(datTraits$Medication))
+datTraits$SentrixBarcode<-as.numeric(as.factor(datTraits$SentrixBarcode))
+datTraits$AmplificationDate<-as.numeric(as.factor(datTraits$AmplificationDate))
 
 ```
 
 ## Plot completion of samples
 ```{r}
-setwd(workingDir)
-jpeg(file="sample_dendrogram.jpeg",width=1000,height=800,pointsize = 12)
+
+plotname<-"sample_dendrogram.jpeg"
+
+jpeg(file=paste(P2_figs_dir,plotname,sep=""),width=1000,height=800,pointsize = 12)
 # Re-cluster samples
 sampleTree2 = flashClust(dist(t_gene_expression_matrix), method = "average")
 # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -94,22 +94,20 @@ plotDendroAndColors(sampleTree2, traitColors,
 groupLabels = names(datTraits),
 main = "Sample dendrogram and trait heatmap")
 dev.off()
-```
-
-
-```{r}
-save(t_gene_expression_matrix, datTraits, file = "GAP_Psychosis-01-dataInput2.RData")
 
 
 ```
+
 
 ```{r}
 # Choose a set of soft-thresholding powers
-powers = c(c(1:10), seq(from = 12, to=20, by=2))
+powers = c(c(1:20), seq(from = 1, to=30, by=2))
 # Call the network topology analysis function
 sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
 
-jpeg(file="scale_independence_plot.jpeg",width=1000,height=800,pointsize = 12)
+
+plotname2<-"scale_independence_plot.jpeg"
+jpeg(file=paste(P2_figs_dir,plotname2,sep=""),width=1000,height=800,pointsize = 12)
 # Plot the results:
 par(mfrow = c(1,2));
 cex1 = 0.9;
@@ -135,7 +133,7 @@ par(mfrow = c(1,1));
 ##net = blockwiseModules(t_gene_expression_matrix, power = 6, TOMType = "unsigned", minModuleSize = 10, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro= FALSE, saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM", verbose = 3)
 
 # 6.1 Set soft power beta=6
-softPower = 6;
+softPower = 8;
 adjacency = adjacency(t_gene_expression_matrix, power = softPower);
 
 
@@ -148,7 +146,8 @@ geneTree = hclust(as.dist(dissTOM), method = "average");
 
 
 # Plot the resulting clustering tree (dendrogram)
-png("Clustering_tree.png")
+clust_tree<-"Clustering_tree.png"
+png(paste(P2_figs_dir,clust_tree,sep=""))
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
 dev.off()
@@ -157,7 +156,7 @@ dev.off()
 # 6.4 Module identification
 
 # We like large modules, so we set the minimum module size relatively high:
-minModuleSize = 30;
+minModuleSize = 20;
 # Module identification using dynamic tree cut:
 dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM, deepSplit = 2, pamRespectsDendro = FALSE, minClusterSize = minModuleSize);
 table(dynamicMods)
