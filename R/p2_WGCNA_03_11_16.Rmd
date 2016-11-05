@@ -6,6 +6,21 @@ output: html_document
 ---
 
 
+##Install and load Libraries:
+```{r Libraries, message=FALSE,warning=FALSE}
+
+```
+
+
+##Set directories:
+```{r directory}
+
+data_dir <-"./data/"
+P2_output_dir <-"./P0_Characterise/output/"
+P2_figs_dir <-"./P0_Characterise/figs/"
+
+```
+
 
 ```{r}
 # Set Directories
