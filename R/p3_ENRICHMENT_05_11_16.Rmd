@@ -27,20 +27,19 @@ P2_output_dir <-"./P2_WGCNA/output/"
 ```{r gene_list}
 setwd(P1_output_dir)
 
-all_probes<-read.table(" full_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
-dim(all_probes)
+all_probes<-read.csv("full_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
 
-
-all_probes <- datatoplot
-setwd(workingDir)
-
+setwd(top_dir)
+setwd(data_dir)
 #Subset to pvalue 0.05
 all_probes$Groups <-all_probes$adj.P.Val <= 0.05
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
 
-enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("Kegg2016.csv"),catNmIn=c("KEGG_2016"),useBloodAtlases=F,useBrainLists=T, useImmunePathwayList=T)
 
+enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+setwd(top_dir)
 
 enpv<-enrichments$pValue
 enrichment_probes<-unlist(lapply(enrichments$ovGenes,paste, collapse =";"))
