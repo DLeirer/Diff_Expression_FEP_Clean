@@ -1,0 +1,221 @@
+---
+title: "WGCNA_GAP_Enrichment"
+author: "DJL"
+date: "07/07/2016"
+output: html_document
+---
+
+#load libraries and set workind directory
+```{r}
+#libraries
+library(reshape)
+library(WGCNA)
+library(flashClust)
+library(data.table)
+
+#directories
+top_dir <-getwd()
+data_dir <-"./data/"
+P1_output_dir <-"./P1_Diff_Ex/output/"
+P2_output_dir <-"./P2_WGCNA/output/"
+
+
+```
+
+
+## User List Enrichement for Diffferentially expressed genes
+```{r gene_list}
+setwd(P1_output_dir)
+
+all_probes<-read.table(" full_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
+dim(all_probes)
+
+
+all_probes <- datatoplot
+setwd(workingDir)
+
+#Subset to pvalue 0.05
+all_probes$Groups <-all_probes$adj.P.Val <= 0.05
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
+
+enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+
+
+enpv<-enrichments$pValue
+enrichment_probes<-unlist(lapply(enrichments$ovGenes,paste, collapse =";"))
+enpv$Genes<-enrichment_probes
+enpv<-enpv[order(enpv$InputCategories,enpv$Pvalues),]
+enpvDT<-data.table(enpv)
+enpvDT<-enpvDT[Pvalues < 0.05 & NumOverlap > 10,.SD[],by=InputCategories]
+
+write.csv(as.data.frame(enpvDT),file="Supplementary_Table_9_User_list_enrichment_diff_expression_results.csv",row.names=F)
+
+
+
+```
+
+##Userlist enrichment for WGCNA modules
+
+##Subset to genes above median module membership.
+```{r gene_list}
+setwd(WGCNA_dir)
+## load WGCNA data
+geneInfo<-read.csv("Supplementary_table_1_WGCNA_geneInfo.csv")
+
+str(geneInfo)
+
+setwd(workingDir)
+
+#Modules
+intModules<-names(table(geneInfo[,4]))
+Psychosis_corr<-intModules[c(2,3,10)]
+Non_Psychosis_corr<-intModules[-c(2,3,10)]
+
+
+
+##  all probes with  >= median membership for their module and above median  >= Psychosis correlation. Only Turq, blue, brown.
+output_data<-data.frame()
+for (module in Psychosis_corr)
+  {
+  # Select module probes
+  modGenes = (geneInfo$moduleColor==module)
+  # Get the module genes
+  modGenes = (geneInfo$moduleColor==module)
+  # Get the module genes
+  sgeneInfo<-(geneInfo[modGenes, ])
+  #Select above median probes by psychosis status
+  sgeneInfo<-sgeneInfo[sgeneInfo$GS.psychosis >= median(sgeneInfo$GS.psychosis),]
+  #Select genes upregulated (above median in terms of module membership)
+  modcol<-paste("MM.",module,sep="")
+  genesf<-sgeneInfo[sgeneInfo[,modcol] >= median(sgeneInfo[,modcol]),c(1,4)]
+  # Add all modules to dataframe sequentially
+  output_data<-rbind(genesf,output_data)
+  
+}
+
+##  All probes with >= median membership for their module, excluding the above and excluding psychosis.
+for (module in Non_Psychosis_corr)
+  {
+  # Select module probes
+  modGenes = (geneInfo$moduleColor==module)
+  # Get the module genes
+  modGenes = (geneInfo$moduleColor==module)
+  # Get the module genes
+  sgeneInfo<-(geneInfo[modGenes, ])
+  #Select genes upregulated (above median in terms of module membership)
+  modcol<-paste("MM.",module,sep="")
+  genesf<-sgeneInfo[sgeneInfo[,modcol] >= median(sgeneInfo[,modcol]),c(1,4)]
+  # Add all modules to dataframe sequentially
+  output_data<-rbind(genesf,output_data)
+  
+}
+
+table(output_data[,2])
+
+background_probes<-geneInfo[!geneInfo[,1]%in%output_data[,1],c(1,4)]
+background_probes[,2] <- "background"
+Output_w_background<-rbind(background_probes,output_data)
+
+str(Output_w_background)
+table(Output_w_background$moduleColor)
+
+fileName = paste("Probes_median_membership_for_modules.csv", sep="");
+write.table(as.data.frame(Output_w_background), file = fileName, row.names = FALSE, col.names = T,quote=FALSE,sep=",")
+
+
+```
+
+
+
+
+## User List Enrichement with KEGG and GO for WGCNA
+
+```{r gene_list}
+
+setwd(workingDir)
+
+
+## Enrichment calculation. May take a couple of minutes. 
+enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+
+##significant overlaps
+enrichments_modules$sigOverlaps
+
+##add genes to data.frame.
+enpv_mm<-enrichments_modules$pValue
+enrichment_probes_modules<-unlist(lapply(enrichments_modules$ovGenes,paste, collapse =";"))
+enpv_mm$Genes<-enrichment_probes_modules
+
+##order by module and pvalue.
+enpv_mm<-enpv_mm[order(enpv_mm$InputCategories,enpv_mm$Pvalues),]
+
+##Make Datatable
+enpv_mmDT<-data.table(enpv_mm)
+##Select top 20, add pvalue < 0.05
+enpv_mmDT<-enpv_mmDT[Pvalues < 0.05 & NumOverlap > 5,.SD[1:20],by=InputCategories]
+#enpv_mmDT<-enpv_mmDT[,.SD[1:20],by=InputCategories]
+str(enpv_mmDT)
+
+enpv_mmDF<-as.data.frame(enpv_mmDT)
+enpv_mmDF<-enpv_mmDF[complete.cases(enpv_mmDF),]
+
+table(enpv_mmDF$InputCategories)
+
+write.csv(enpv_mmDF,file="Supplementary_Table_12_User_list_enrichment_WGCNA_results.csv",row.names=F)
+#write.csv(as.data.frame(enpvDT),file="Supplementary_Table_12_User_list_enrichment_WGCNA_results_full.csv")
+
+##make table displaying all categories per module
+table4v1<-enpv_mmDF[1:3]
+table4v1[,1]<-as.character(table4v1[,1])
+table4v1[,2]<-as.character(table4v1[,2])
+table4v1[,3]<-as.character(table4v1[,3])
+
+##Subcategories for each color
+#GO_BP
+values<-c("GO_BP","GO_MF","KEGG")
+
+##Index column for each category
+for (i in  values){
+  index<-grep(i, table4v1[,2])
+  table4v1[index,3]<-i
+
+}
+
+table4v1[,3]<-paste(table4v1[,1],table4v1[,3] , sep="__")
+
+
+tablecat<-table4v1[,2]
+
+##remove (GO endings)
+tablecat2<-sapply(strsplit(tablecat[], "\\(GO"), "[[", 1)
+tablecat2<-sapply(strsplit(tablecat2[], "__"), "[[", 1)
+tablecat2
+
+##remove module colors
+tablecatfinal<-gsub("^.*?_M.{1,2}_","",tablecat2)
+
+##put back in original dataframe
+table4v1[,4]<-tablecatfinal
+
+
+#write.csv(table4v1,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
+#View(table4v1)
+
+library(plyr)
+##Collapse per category
+table4v2<-ddply(table4v1[,c(3,4)], .(Type), summarise, V4=paste0(V4, collapse=", "),stringsAsFactors=FALSE)
+table4v3<- data.frame(do.call('rbind', strsplit(as.character(table4v2$Type),"__",fixed=TRUE)))
+table4v3[,3]<-table4v2[,2]
+colnames(table4v3)<- c("Module","Library","Enriched Categories" )
+View(table4v3)
+write.csv(table4v3,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
+
+```
+
+
+
+```{r}
+
+
+```

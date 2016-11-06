@@ -45,12 +45,14 @@ Non Significant Probes
 library(lumi)
 library(limma)
 library(dplyr)
-
+library(Tmisc)
+library(calibrate)
+library(ggplot2)
 ```
 
 ## Set directories
 ```{r set directories, eval=TRUE, tidy=TRUE}
-data_dir <-"./data/"
+data_dir <-"./P0_Characterise/output/"
 P1_output_dir <-"./P1_Diff_Ex/output/"
 P1_figs_dir <-"./P1_Diff_Ex/figs/"
 ```
@@ -61,7 +63,7 @@ P1_figs_dir <-"./P1_Diff_Ex/figs/"
 ```{r load_eset, tidy=TRUE}
 #Load Gene expression data in Lumi batch object
 
-load(paste(data_dir,"GAP_FEP_Full_Gene_Expression_Data.RData",sep=""))
+load(paste(data_dir,"GAP_FEP_small_Gene_Expression_Data.RData",sep=""))
 
 ```
 
@@ -74,9 +76,12 @@ gap <- factor(eset_bg_log2_rsn_SVA_Good$Phenotype)
 gap_gender <- factor(eset_bg_log2_rsn_SVA_Good$Gender)
 gap_age <-as.numeric(eset_bg_log2_rsn_SVA_Good$Age)
 gap_ethnicity <-factor(eset_bg_log2_rsn_SVA_Good$Ethnicity)
+gap_neutro <-as.numeric(eset_bg_log2_rsn_SVA_Good$neutro)
+gap_RIN <-as.numeric(eset_bg_log2_rsn_SVA_Good$tech.RIN)
+gap_Ampli<-as.factor(as.character(as.numeric(as.factor(eset_bg_log2_rsn_SVA_Good$tech.Date_Dilutionand_Amplification))))
 
 #Design Matrix
-design = model.matrix(~0+gap+gap_gender+gap_ethnicity+gap_age)  
+design = model.matrix(~0+gap+gap_gender+gap_ethnicity+gap_age+gap_neutro+gap_RIN+gap_Ampli)  
 
 ## Limma lmFit
 fit <- lmFit(eset_bg_log2_rsn_SVA_Good, design)
@@ -193,12 +198,10 @@ write.table(table2down, file=paste(P1_output_dir,"Table_2_downregulated_signific
 ##Volcano Plot
 ```{r}
 # Make a basic volcano plot
-library(Tmisc)
-library(calibrate)
 
 filename <- "Volcanoplot.jpeg"
 jpeg(file = paste(P1_figs_dir,filename,sep=""), pointsize = 20, width = 1500, height = 1300)
-with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-2,2)))
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
 
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
 with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
@@ -240,7 +243,7 @@ ggsave(paste(P1_figs_dir,title,".png",sep=""))
 
 table(datatoplot$CHROMOSOME)
 
-
+filter(datatoplot,logFC>=0.4)
 
 
 

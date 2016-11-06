@@ -109,7 +109,24 @@ Files .
 
 
 
-# Subproject 3: 
+# Subproject 3: Enrichment
+
+**Aims:**   
+Enrichment of Diff Ex and WGCNA results.  
+
+**Input:**  
+Lumibatch Object  
+
+**Script_Strategy:**    
+
+
+1. *p3_ENRICHMENT_05_11_16.Rmd*  
++ Script for userlistenrichment.
+
+
+**Output:**  
+Files.  
+Enrichment files.
 
 # Subproject 4: Other Data
 
