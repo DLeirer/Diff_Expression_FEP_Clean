@@ -31,20 +31,30 @@ P2_figs_dir <-"./P2_WGCNA/figs/"
 options(stringsAsFactors = FALSE);
 
 
-data="GAP_FEP_Full_Gene_Expression_Data.RData"
+#data="GAP_FEP_Full_Gene_Expression_Data.RData"
+data="GAP_DL_FEP.eset_bg_log2_rsn_SVA.RData"
+
 
 #load Gene expression data
 load(paste(data_dir,data,sep=""))
 
+eset_bg_log2_rsn_SVA_Good<-eset_bg_log2_rsn_SVA_Good
+
+exprs(eset_bg_log2_rsn_SVA_Good)<-gene_expression_matrix
+fData(eset_bg_log2_rsn_SVA_Good)<-probenames[probenames$nuID%in%rownames(gene_expression_matrix),]
+
 
 
 # remove duplicate probes and use gene symbols
-gene<- t(exprs(eset_bg_log2_rsn_SVA_Good))
-probenames<-eset_bg_log2_rsn_SVA_Good@featureData@data
+gene<- t(exprs(eset_bg_log2_rsn_SVA))
+probenames<-eset_bg_log2_rsn_SVA@featureData@data
 colnames(gene) <- probenames$TargetID
 gene<-gene[,probenames$good_probe]
+gene <- gene[, !duplicated(colnames(gene))]
 gene_expression_matrix<-t(gene)
 t_gene_expression_matrix<-gene
+
+
 
 dim(t_gene_expression_matrix)
 
@@ -55,8 +65,8 @@ gsg$allOK
 
 ##Loading Phenotype Data
 ```{r load pheno}
-names(pData(eset_bg_log2_rsn_SVA_Good))
-allTraits<-pData(eset_bg_log2_rsn_SVA_Good)[,c(1,11:17,21:26,32:33)]
+names(pData(eset_bg_log2_rsn_SVA))
+allTraits<-pData(eset_bg_log2_rsn_SVA)[,c(1,11:17,21:26,32:33)]
 
 ## Change Tech Names
 colnames(allTraits)[13:16]<-c("RIN","SentrixBarcode","Nanodrop","AmplificationDate")
@@ -101,7 +111,7 @@ dev.off()
 
 ```{r}
 # Choose a set of soft-thresholding powers
-powers = c(c(1:20), seq(from = 1, to=30, by=2))
+powers = c(1:15)
 # Call the network topology analysis function
 sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
 
@@ -133,7 +143,7 @@ par(mfrow = c(1,1));
 ##net = blockwiseModules(t_gene_expression_matrix, power = 6, TOMType = "unsigned", minModuleSize = 10, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro= FALSE, saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM", verbose = 3)
 
 # 6.1 Set soft power beta=6
-softPower = 8;
+softPower = 6;
 adjacency = adjacency(t_gene_expression_matrix, power = softPower);
 
 

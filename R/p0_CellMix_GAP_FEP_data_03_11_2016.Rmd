@@ -43,6 +43,53 @@ load(paste(data_dir,lumidata,sep=""))
 
 ```
 
+
+##Subset to good probes:
+```{r}
+
+dim(eset_bg_log2_rsn_SVA)
+eset_bg_log2_rsn_SVA_Good<-eset_bg_log2_rsn_SVA
+#make exprs data with good probes
+exprs_data<-exprs(eset_bg_log2_rsn_SVA)
+feature_data<-fData(eset_bg_log2_rsn_SVA)
+#get good probe
+good_fdata<-filter(feature_data, good_probe =="TRUE")
+good_fdata_nHS<-good_fdata[!grepl("^HS\\.",good_fdata$TargetID),]
+good_fdata_nHSLoc<-good_fdata_nHS[!grepl("^LOC",good_fdata_nHS$TargetID),]
+
+exprs_into_lumibatch<-exprs_data[rownames(exprs_data)%in%good_fdata_nHSLoc$nuID,]
+exprs_into_lumibatch
+
+################ REMOVE DUPLICATES BY SELCTING HIGHEST AVERAGE EXPRESSED PROBE ###############################
+#rowmeans
+exprsmean<-rowMeans(exprs_into_lumibatch)
+#add id
+rownames(good_fdata_nHSLoc)<-good_fdata_nHSLoc$nuID
+exprsmean_ids<-merge(as.data.frame(exprsmean),good_fdata_nHSLoc[,c("nuID","TargetID")],by="row.names")
+# order data frame by truncated probe id and then expression level
+exprsmean_ids<-exprsmean_ids[order(exprsmean_ids$TargetID, -exprsmean_ids$exprsmean), ]
+
+# remove all duplicate probe id - keep one with highest mean expression
+exprsmean_ids_unique<-exprsmean_ids[!duplicated(exprsmean_ids$TargetID),]
+
+#reduce exprs set again
+exprs_into_lumibatch2<-exprs_into_lumibatch[exprsmean_ids_unique$Row.names,]
+
+good_fdata_small<-good_fdata_nHSLoc[exprsmean_ids_unique$Row.names,]
+
+#check they are same order
+all.equal(good_fdata_small$nuID,rownames(exprs_into_lumibatch2))
+
+
+
+#LUMIBATCH made
+eset_bg_log2_rsn_SVA_Good<-eset_bg_log2_rsn_SVA[rownames(exprs_into_lumibatch2),]
+fData(eset_bg_log2_rsn_SVA_Good)<-good_fdata_small
+
+```
+
+
+
 ##GED BLOOD ABBAS WHOLE BLOOD:
 gedBlood is a meta function. It uses a standard set of functions included in CellMix to generate results. It seems to be able to handle nuIDs. gedBlood automatically adjusts gene IDs so I suspect it searches the LumiBatch file for IDs it recognises and matches them with whatever dataset it uses. 
 In this case the ABBAS blood atlas is used. 
@@ -89,11 +136,11 @@ reduced_probs_pheno<-cbind(reduced_props,pheno_data)
 names(reduced_probs_pheno)
 
 #Melt Data for ggplot
-mwbdata <- melt(reduced_probs_pheno, id=c(12:72))
+mwbdata <- melt(reduced_probs_pheno, id=c(11:71))
 head(mwbdata)
 
 #Graph data
-bloodgraph<-ggplot(mwbdata,aes(x=variable,y=value,fill=Phenotype), ) +  
+bloodgraph<-ggplot(mwbdata,aes(x=variable,y=value,fill=Gender), ) +  
   geom_boxplot()+
   ggtitle("Blood Cell Proportions")+
   theme(plot.title = element_text(lineheight=.8, face="bold"))+
