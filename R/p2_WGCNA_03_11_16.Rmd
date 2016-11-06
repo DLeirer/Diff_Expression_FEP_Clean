@@ -103,7 +103,7 @@ dev.off()
 # Choose a set of soft-thresholding powers
 powers = c(1:15)
 # Call the network topology analysis function
-sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "signed")
+sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
 
 
 plotname2<-"scale_independence_plot.jpeg"
