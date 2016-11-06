@@ -25,6 +25,7 @@ P3_output_dir <-"./P3_Enrichment/output/"
 
 ## User List Enrichement for Diffferentially expressed genes
 ```{r gene_list}
+setwd(top_dir)
 setwd(P1_output_dir)
 
 all_probes<-read.csv("full_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)

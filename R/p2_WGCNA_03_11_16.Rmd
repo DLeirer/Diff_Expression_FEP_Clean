@@ -16,7 +16,7 @@ library(flashClust)
 
 ##Set directories:
 ```{r directory}
-
+topdir<-getwd()
 data_dir <-"./P0_Characterise/output/"
 P2_output_dir <-"./P2_WGCNA/output/"
 P2_figs_dir <-"./P2_WGCNA/figs/"
@@ -165,7 +165,8 @@ table(dynamicMods)
 dynamicColors = labels2colors(dynamicMods)
 table(dynamicColors)
 
-png("Dendrorogram.png")
+clust_tree<-"Dendrorogram.png"
+png(paste(P2_figs_dir,clust_tree,sep=""))
 plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut", dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, guideHang = 0.05, main = "Gene dendrogram and module colors")
 dev.off()
 
@@ -178,12 +179,12 @@ MEDiss = 1-cor(MEs);
 # Cluster module eigengenes
 METree = hclust(as.dist(MEDiss), method = "average");
 
-
+setwd(P2_figs_dir)
 # 6.7  Plot the results and see whether some Modules are highly correlated and therefore would be better to be merged
 # Plot the cut line into the dendrogram
 png("ME clustering.png")
 plot(METree, main = "Clustering of module eigengenes",xlab = "", sub = "")
-MEDissThres = 0.25 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
+MEDissThres = 0.5 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
 abline(h=MEDissThres, col = "red")
 dev.off()
 
@@ -239,6 +240,8 @@ MEs0 = moduleEigengenes(t_gene_expression_matrix, moduleColors)$eigengenes
 MEs = orderMEs(MEs0)
 moduleTraitCor = cor(MEs, datTraits, use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+
+
 
 ```
 
@@ -380,7 +383,7 @@ dev.off()
 ##annot$nuID
 ##str(annot)
 
-annot<- fData(neweset2)
+annot<- fData(eset_bg_log2_rsn_SVA_Good)
 dim(annot)
 names(annot)
 
@@ -419,5 +422,9 @@ geneInfo = geneInfo0[geneOrder, ]
 ```
 
 ```{r}
+setwd(topdir)
+setwd(P2_output_dir)
+
 write.csv(geneInfo, file = "Supplementary_table_6_WGCNA_geneInfo.csv")
+setwd(topdir)
 ```
