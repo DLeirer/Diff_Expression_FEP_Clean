@@ -119,11 +119,11 @@ top_de_genes$B <- round(top_de_genes$B,2)
 
 ##Save full dataframe
 full_limma_results_AgeSexEthnicity_Adj <- top_de_genes
-write.table(full_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"full_limma_results_AgeSexEthnicity_Adj.tsv"),row.names=FALSE,quote=FALSE,sep = "\t")
+write.table(full_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"full_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
 ##Save Reduced dataframe
 small_limma_results_AgeSexEthnicity_Adj <- top_de_genes[,c("TargetID","logFC","P.Value","adj.P.Val","CHROMOSOME","DEFINITION")]
-write.table(small_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"small_limma_results_AgeSexEthnicity_Adj.tsv"),row.names=FALSE,quote=FALSE,sep = "\t")
+write.table(small_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"small_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
 
 ```
@@ -242,8 +242,8 @@ ggplot(data = datatoplot,
 ggsave(paste(P1_figs_dir,title,".png",sep=""))
 
 table(datatoplot$CHROMOSOME)
-
-filter(datatoplot,logFC>=0.4)
+names(datatoplot)
+filter(datatoplot[,c(2,30:37)],logFC<=-0.2)
 
 
 
