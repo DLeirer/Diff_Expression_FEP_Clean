@@ -27,8 +27,7 @@ P3_output_dir <-"./P3_Enrichment/output/"
 ```{r gene_list}
 setwd(top_dir)
 setwd(P1_output_dir)
-
-all_probes<-read.csv("full_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
+all_probes<-read.csv("Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
 
 setwd(top_dir)
 setwd(data_dir)
@@ -51,26 +50,26 @@ enpvDT<-enpvDT[Pvalues < 0.05 & NumOverlap > 10,.SD[],by=InputCategories]
 
 write.csv(as.data.frame(enpvDT),file=paste(P3_output_dir,"Supplementary_Table_9_User_list_enrichment_diff_expression_results.csv",sep=""),row.names=F)
 
-
-P3_output_dir
 ```
 
 ##Userlist enrichment for WGCNA modules
 
 ##Subset to genes above median module membership.
 ```{r gene_list}
-setwd(WGCNA_dir)
+setwd(P2_output_dir)
 ## load WGCNA data
-geneInfo<-read.csv("Supplementary_table_1_WGCNA_geneInfo.csv")
+geneInfo<-read.csv("Supplementary_table_6_WGCNA_geneInfo.csv")
 
 str(geneInfo)
 
-setwd(workingDir)
+setwd(top_dir)
+setwd(data_dir)
+
 
 #Modules
-intModules<-names(table(geneInfo[,4]))
-Psychosis_corr<-intModules[c(2,3,10)]
-Non_Psychosis_corr<-intModules[-c(2,3,10)]
+intModules<-names(table(geneInfo[,5]))
+Psychosis_corr<-intModules[]
+Non_Psychosis_corr<-intModules[]
 
 
 
@@ -100,12 +99,10 @@ for (module in Non_Psychosis_corr)
   # Select module probes
   modGenes = (geneInfo$moduleColor==module)
   # Get the module genes
-  modGenes = (geneInfo$moduleColor==module)
-  # Get the module genes
   sgeneInfo<-(geneInfo[modGenes, ])
   #Select genes upregulated (above median in terms of module membership)
   modcol<-paste("MM.",module,sep="")
-  genesf<-sgeneInfo[sgeneInfo[,modcol] >= median(sgeneInfo[,modcol]),c(1,4)]
+  genesf<-sgeneInfo[sgeneInfo[,modcol] >= median(sgeneInfo[,modcol]),c(1,5)]
   # Add all modules to dataframe sequentially
   output_data<-rbind(genesf,output_data)
   
@@ -113,13 +110,15 @@ for (module in Non_Psychosis_corr)
 
 table(output_data[,2])
 
-background_probes<-geneInfo[!geneInfo[,1]%in%output_data[,1],c(1,4)]
+background_probes<-geneInfo[!geneInfo[,1]%in%output_data[,1],c(1,5)]
 background_probes[,2] <- "background"
 Output_w_background<-rbind(background_probes,output_data)
 
 str(Output_w_background)
-table(Output_w_background$moduleColor)
+table(Output_w_background[2])
 
+setwd(top_dir)
+setwd(P3_output_dir)
 fileName = paste("Probes_median_membership_for_modules.csv", sep="");
 write.table(as.data.frame(Output_w_background), file = fileName, row.names = FALSE, col.names = T,quote=FALSE,sep=",")
 
@@ -133,10 +132,11 @@ write.table(as.data.frame(Output_w_background), file = fileName, row.names = FAL
 
 ```{r gene_list}
 
-setwd(workingDir)
-
+setwd(top_dir)
+setwd(data_dir)
 
 ## Enrichment calculation. May take a couple of minutes. 
+
 enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
 
 ##significant overlaps
@@ -162,6 +162,9 @@ enpv_mmDF<-enpv_mmDF[complete.cases(enpv_mmDF),]
 
 table(enpv_mmDF$InputCategories)
 
+getwd()
+setwd(top_dir)
+setwd(P3_output_dir)
 write.csv(enpv_mmDF,file="Supplementary_Table_12_User_list_enrichment_WGCNA_results.csv",row.names=F)
 #write.csv(as.data.frame(enpvDT),file="Supplementary_Table_12_User_list_enrichment_WGCNA_results_full.csv")
 
