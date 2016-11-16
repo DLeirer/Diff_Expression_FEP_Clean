@@ -151,9 +151,12 @@ The Main Dataset is the Genes and Psychosis Data internal to the IoPPN.
 The following files are associated to this Data.  
 
 File: **Full Gene Expression Object**  
-*GAP_FEP_Full_Gene_Expression_Data.RData*  
+*GAP_FEP_Full_Gene_Expression_Data_Linear.RData*  
 Description:
-This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation, surrogate variable analysis.
+This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation. The following tech variables have been regressed out using a linear model:  
+ConcNanodrop, Dateout, concentrationoflabelledcRNA, DatecRNApurification  
+
+
 
 Source file name:  
 *FINAL_GAP_DL_FEP.eset_bg_log2_rsn_SVA_Good.RData*  

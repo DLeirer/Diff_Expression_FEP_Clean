@@ -5,3 +5,5 @@ GO_Biological_Process_2015.csv
 GO_Molecular_Function_2015.csv
 Kegg2016.csv
 enrichment.csv
+GAP_FEP_Full_Gene_Expression_Data_Linear.RData
+GAP_FEP_Full_Gene_Expression_Data_SVA.RData
