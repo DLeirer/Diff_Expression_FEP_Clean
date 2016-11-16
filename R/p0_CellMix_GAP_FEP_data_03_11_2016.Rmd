@@ -34,7 +34,7 @@ P0_figs_dir <-"./P0_Characterise/figs/"
 ##Load gene expression data (Should be LumiBatch object):
 ```{r}
 
-lumidata<-"GAP_FEP_Full_Gene_Expression_Data.RData"
+lumidata<-"GAP_FEP_Full_Gene_Expression_Data_Linear.RData"
 load(paste(data_dir,lumidata,sep=""))
 
 
@@ -50,13 +50,11 @@ eset_bg_log2_rsn_SVA_Good<-eset_bg_log2_rsn_SVA
 exprs_data<-exprs(eset_bg_log2_rsn_SVA)
 feature_data<-fData(eset_bg_log2_rsn_SVA)
 #get good probe
-names(feature_data$good_probe)
 good_fdata<-filter(feature_data, good_probe =="TRUE")
 #good_fdata_nHS<-good_fdata[!grepl("^HS\\.",good_fdata$TargetID),]
 #good_fdata_nHSLoc<-good_fdata_nHS[!grepl("^LOC",good_fdata_nHS$TargetID),]
 
 exprs_into_lumibatch<-exprs_data[rownames(exprs_data)%in%good_fdata$nuID,]
-exprs_into_lumibatch
 
 ################ REMOVE DUPLICATES BY SELCTING HIGHEST AVERAGE EXPRESSED PROBE ###############################
 #rowmeans
@@ -194,7 +192,7 @@ stats_gender<-ddply(mwbdata,"variable",
           with(w,data.frame(statistic,p.value))
       })
 
-stats_pheno[,c(1,3)]
+stats_pheno
 
 
 
@@ -207,7 +205,38 @@ stats_pheno[,c(1,3)]
 cor(reduced_probs_pheno[1:10])
 
 
-pData(eset_bg_log2_rsn_SVA_Good)<-reduced_probs_pheno[,c(11:71,10)]
-
+pData(eset_bg_log2_rsn_SVA_Good)<-reduced_probs_pheno[,c(11:71,1,10)]
+names(pData(eset_bg_log2_rsn_SVA_Good))
 save(eset_bg_log2_rsn_SVA_Good,file=paste(P0_output_dir,"GAP_FEP_small_Gene_Expression_Data.RData",sep=""))
 ```
+
+##Linear model to remove Age Ethnicity Sex and Blood differences:
+```{r, tidy=TRUE}
+#Input
+pData_rAESB<-pData(eset_bg_log2_rsn_SVA_Good)
+exprs_rAESB<-exprs(eset_bg_log2_rsn_SVA_Good)
+
+str(pData_rAESB)
+
+mod = model.matrix(~Tc+neutro+as.factor(Gender)+Age+as.factor(Ethnicity),data=pData_rAESB)
+fit = lm.fit(mod,t(exprs_rAESB))
+#add residuals to average expression data
+exprs_res_cor_adj<-t(fit$residuals)+apply(exprs_rAESB,1,mean)
+exprs_res_cor_adj[1:10,1:10]
+
+
+#make Lumibatch
+exprs_into_lumibatch<-exprs_res_cor_adj
+#check they are same order
+all.equal(rownames(fData(eset_bg_log2_rsn_SVA_Good)),rownames(exprs_into_lumibatch))
+#LUMIBATCH made
+eset_linear_adj<-eset_bg_log2_rsn_SVA_Good
+#Expression data put in
+exprs(eset_linear_adj)<-exprs_into_lumibatch
+
+#save
+save(eset_linear_adj,file=paste(P0_output_dir,"GAP_FEP_eset_linear_adj_Data.RData",sep=""))
+```
+
+
+
