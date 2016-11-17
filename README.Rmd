@@ -58,10 +58,11 @@ Also Cell Mix is performed to make sure everything is okay down the line.
 
 **Script_Strategy:**  
   
-1. *p0_characterise_GAP_FEP_data_03_11_2016.Rmd*
-+ Characterise cohort. Plot demographics, make tables, do stats.
 1. *p0_CellMix_GAP_FEP_data_03_11_2016.Rmd*
 + apply cellmix to identify poetential confounders from cell proportions. 
+1. *p0_characterise_GAP_FEP_data_03_11_2016.Rmd*
++ Characterise cohort. Plot demographics, make tables, do stats.
+
 
 **Output:**  
 
