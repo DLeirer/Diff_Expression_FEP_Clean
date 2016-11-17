@@ -177,18 +177,13 @@ dev.off()
 ```
 
 ##Statistics:
+#Looks like Tc and neutro are significant. I will adjust for that. 
 ```{r, tidy=TRUE}
 
 names(mwbdata)
 stats_pheno<-ddply(mwbdata,"variable",
       function(x) {
           w <- wilcox.test(value~Phenotype,data=x)
-          with(w,data.frame(statistic,p.value))
-      })
-
-stats_gender<-ddply(mwbdata,"variable",
-      function(x) {
-          w <- wilcox.test(value~Gender,data=x)
           with(w,data.frame(statistic,p.value))
       })
 
@@ -199,7 +194,7 @@ stats_pheno
 
 ```
 
-##Add Pheno:
+##Add TC and neutro to phenodata:
 ```{r, tidy=TRUE}
 
 cor(reduced_probs_pheno[1:10])

@@ -56,6 +56,7 @@ write.csv(as.data.frame(enpvDT),file=paste(P3_output_dir,"Supplementary_Table_9_
 
 ##Subset to genes above median module membership.
 ```{r gene_list}
+setwd(top_dir)
 setwd(P2_output_dir)
 ## load WGCNA data
 geneInfo<-read.csv("Supplementary_table_6_WGCNA_geneInfo.csv")
@@ -110,6 +111,8 @@ for (module in Non_Psychosis_corr)
 
 table(output_data[,2])
 
+
+
 background_probes<-geneInfo[!geneInfo[,1]%in%output_data[,1],c(1,5)]
 background_probes[,2] <- "background"
 Output_w_background<-rbind(background_probes,output_data)
@@ -137,10 +140,14 @@ setwd(data_dir)
 
 ## Enrichment calculation. May take a couple of minutes. 
 
+enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+
 enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
 
 ##significant overlaps
 enrichments_modules$sigOverlaps
+
+enrichments_modules$sigOverlaps[order(enrichments_modules$sigOverlaps$InputCategories),]
 
 ##add genes to data.frame.
 enpv_mm<-enrichments_modules$pValue
@@ -211,7 +218,6 @@ table4v2<-ddply(table4v1[,c(3,4)], .(Type), summarise, V4=paste0(V4, collapse=",
 table4v3<- data.frame(do.call('rbind', strsplit(as.character(table4v2$Type),"__",fixed=TRUE)))
 table4v3[,3]<-table4v2[,2]
 colnames(table4v3)<- c("Module","Library","Enriched Categories" )
-View(table4v3)
 write.csv(table4v3,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
 
 ```

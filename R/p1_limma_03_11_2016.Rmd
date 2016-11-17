@@ -8,9 +8,12 @@ output:
     toc_float: yes
 ---
 #Overview
+Differential Expression on GAP FEP Data. We are removing all batch and covariate effects, (technical variables, age, gender, ethnicity). We can't control effectively for Medication, Tobacco and BMI or anything else. This will have to be done in a posthoc analysis, so these results should be interpreted cautiously.
+That being said we think this is still appropiate and usefull, since First episode psychosis patients will at most only be exposed to medication for a short while, and we regressed statistically significant cell effects out (TC and Neutro) at a previous step. 
 
 **Aim**  
-Differential Expression on GAP FEP Data.  
+Overall we hope to see fundamental gene expression difference between cases and controls, regardless of age, gender or ethnicity. These can be investigated elswhere.
+It is useful to find biological differences independent of the above mentioned phenotypes, since this might elucidate fundamental changes in peripheral blood of psychosis patients that could be incorporated in clinical tests, or taken further to investigate biological underpinnings of the disease. 
 
 
 #Pseudocode
@@ -40,14 +43,19 @@ Non Significant Probes
 
 ```
 
-## Load Libaries
+## Load Libaries and clean
 ```{r load_libs, tidy=TRUE}
+##cleanup
+rm(list = ls())
+dev.off()
 library(lumi)
 library(limma)
 library(dplyr)
 library(Tmisc)
 library(calibrate)
 library(ggplot2)
+
+
 ```
 
 ## Set directories
@@ -63,28 +71,29 @@ P1_figs_dir <-"./P1_Diff_Ex/figs/"
 ```{r load_eset, tidy=TRUE}
 #Load Gene expression data in Lumi batch object
 
-load(paste(data_dir,"GAP_FEP_small_Gene_Expression_Data.RData",sep=""))
+#load(paste(data_dir,"GAP_FEP_small_Gene_Expression_Data.RData",sep=""))
+load(paste(data_dir,"GAP_FEP_eset_linear_adj_Data.RData",sep=""))
+
 
 ```
+
+
 
 ## Limma
 ```{r LIMMA Design}
 
+GX_lumi_object<-eset_linear_adj
+
 #Prepare covariates
-names(pData(eset_bg_log2_rsn_SVA_Good))
-gap <- factor(eset_bg_log2_rsn_SVA_Good$Phenotype)
-gap_gender <- factor(eset_bg_log2_rsn_SVA_Good$Gender)
-gap_age <-as.numeric(eset_bg_log2_rsn_SVA_Good$Age)
-gap_ethnicity <-factor(eset_bg_log2_rsn_SVA_Good$Ethnicity)
-gap_neutro <-as.numeric(eset_bg_log2_rsn_SVA_Good$neutro)
-gap_RIN <-as.numeric(eset_bg_log2_rsn_SVA_Good$tech.RIN)
-gap_Ampli<-as.factor(as.character(as.numeric(as.factor(eset_bg_log2_rsn_SVA_Good$tech.Date_Dilutionand_Amplification))))
+names(pData(GX_lumi_object))
+gap <- factor(GX_lumi_object$Phenotype)
+
 
 #Design Matrix
-design = model.matrix(~0+gap+gap_gender+gap_ethnicity+gap_age+gap_neutro+gap_RIN+gap_Ampli)  
+design = model.matrix(~0+gap)  
 
 ## Limma lmFit
-fit <- lmFit(eset_bg_log2_rsn_SVA_Good, design)
+fit <- lmFit(GX_lumi_object, design)
 
 ## Limma makeContrasts 
 contrasts <- makeContrasts(gapFEP-gapcontrol, levels=design)
@@ -101,10 +110,8 @@ contrast.fit <- eBayes(contrast.fit)
 #Top Table
 ```{r limma_topTable, comment=NA, width=100, tidy=TRUE}
 # Limma topTabl
-top_de_genes <- topTable(contrast.fit, coef=1, number=20000,adjust.method="fdr",p.value=1,confint=TRUE)
+top_de_genes <- topTable(contrast.fit, coef=1, number=5000,adjust.method="fdr",p.value=1,confint=TRUE)
 dim(top_de_genes)
-
-names(top_de_genes)
 
 # tidy up
 top_de_genes$logFC <- round(top_de_genes$logFC,2)
@@ -201,7 +208,7 @@ write.table(table2down, file=paste(P1_output_dir,"Table_2_downregulated_signific
 
 filename <- "Volcanoplot.jpeg"
 jpeg(file = paste(P1_figs_dir,filename,sep=""), pointsize = 20, width = 1500, height = 1300)
-with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-1,1)))
 
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
 with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
@@ -209,15 +216,16 @@ with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col
 with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
     
 # Label points with the textxy function from the calibrate plot
-with(datatoplot [c(6:10),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
-with(subset(datatoplot, logFC < -0.27 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
-with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(datatoplot [c(1,4,8,9,10,12),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(subset(datatoplot, logFC < -0.25 & adj.P.Val <0.002 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC < -0.33 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC >= 0.38 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
 dev.off()
 
 
 filename <- "Volcanoplot.pdf"
 pdf(paste(P1_figs_dir,filename,sep=""), width = 15, height = 15,pointsize=10)
-with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-0.5,1.5)))
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Differentially Expressed Probes", xlim=c(-1,1)))
 
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
 with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
@@ -225,9 +233,10 @@ with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col
 with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
     
 # Label points with the textxy function from the calibrate plot
-with(datatoplot [c(6:10),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
-with(subset(datatoplot, logFC < -0.27 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
-with(subset(datatoplot, logFC >= 0.37 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(datatoplot [c(1,4,8,9,10,12),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+with(subset(datatoplot, logFC < -0.25 & adj.P.Val <0.002 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC < -0.33 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
+with(subset(datatoplot, logFC >= 0.38 & adj.P.Val <0.05 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
 dev.off()
 
 
@@ -241,10 +250,16 @@ ggplot(data = datatoplot,
       ggtitle(title)
 ggsave(paste(P1_figs_dir,title,".png",sep=""))
 
+
+
 table(datatoplot$CHROMOSOME)
 names(datatoplot)
 filter(datatoplot[,c(2,30:37)],logFC<=-0.2)
-
+filter(datatoplot[,c(2,30:37)],logFC<=-0.2)
+datatoplot%>%filter(CHROMOSOME==22)%>
+  
+mean_logfc<-datatoplot %>% group_by(CHROMOSOME) %>% summarise(avg = mean(logFC))
+View(mean_logfc[order(mean_logfc$avg),])
 
 
 ```

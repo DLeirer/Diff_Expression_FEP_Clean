@@ -32,14 +32,16 @@ options(stringsAsFactors = FALSE);
 
 
 #data="GAP_FEP_Full_Gene_Expression_Data.RData"
-data="GAP_FEP_small_Gene_Expression_Data.RData"
+data="GAP_FEP_eset_linear_adj_Data.RData"
 
 #load Gene expression data
 load(paste(data_dir,data,sep=""))
 
+GX_lumi_object<-eset_linear_adj
+
 # remove duplicate probes and use gene symbols
-gene<- t(exprs(eset_bg_log2_rsn_SVA_Good))
-probenames<-eset_bg_log2_rsn_SVA_Good@featureData@data
+gene<- t(exprs(GX_lumi_object))
+probenames<-GX_lumi_object@featureData@data
 colnames(gene) <- probenames$TargetID
 gene_expression_matrix<-t(gene)
 t_gene_expression_matrix<-gene
@@ -55,8 +57,8 @@ gsg$allOK
 
 ##Loading Phenotype Data
 ```{r load pheno}
-names(pData(eset_bg_log2_rsn_SVA_Good))
-allTraits<-pData(eset_bg_log2_rsn_SVA_Good)[,c(1,11:17,21:26,32:33,62)]
+names(pData(GX_lumi_object))
+allTraits<-pData(GX_lumi_object)[,c(1,11:17,21:26,32:33,62,63)]
 
 ## Change Tech Names
 colnames(allTraits)[13:16]<-c("RIN","SentrixBarcode","Nanodrop","AmplificationDate")
@@ -103,7 +105,7 @@ dev.off()
 # Choose a set of soft-thresholding powers
 powers = c(1:15)
 # Call the network topology analysis function
-sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
+sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "signed")
 
 
 plotname2<-"scale_independence_plot.jpeg"
@@ -133,12 +135,12 @@ par(mfrow = c(1,1));
 ##net = blockwiseModules(t_gene_expression_matrix, power = 6, TOMType = "unsigned", minModuleSize = 10, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro= FALSE, saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM", verbose = 3)
 
 # 6.1 Set soft power beta=6
-softPower = 6;
+softPower = 12;
 adjacency = adjacency(t_gene_expression_matrix, power = softPower);
 
 
 # 6.2 Turn adjacency into topological overlap
-TOM = TOMsimilarity(adjacency,TOMType="unsigned");
+TOM = TOMsimilarity(adjacency,TOMType="signed");
 dissTOM = 1-TOM
 
 # 6.3  Call the hierarchical clustering function
@@ -184,7 +186,7 @@ setwd(P2_figs_dir)
 # Plot the cut line into the dendrogram
 png("ME clustering.png")
 plot(METree, main = "Clustering of module eigengenes",xlab = "", sub = "")
-MEDissThres = 0.5 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
+MEDissThres = 0.2 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
 abline(h=MEDissThres, col = "red")
 dev.off()
 
@@ -383,7 +385,7 @@ dev.off()
 ##annot$nuID
 ##str(annot)
 
-annot<- fData(eset_bg_log2_rsn_SVA_Good)
+annot<- fData(GX_lumi_object)
 dim(annot)
 names(annot)
 
