@@ -11,7 +11,8 @@ output:
 
 ##Install and load Libraries:
 ```{r Libraries, message=FALSE,warning=FALSE}
-
+rm(list = ls())
+dev.off()
 library(lumi)
 library(reshape)
 library(plyr)

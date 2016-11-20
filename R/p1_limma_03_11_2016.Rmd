@@ -71,7 +71,6 @@ P1_figs_dir <-"./P1_Diff_Ex/figs/"
 ```{r load_eset, tidy=TRUE}
 #Load Gene expression data in Lumi batch object
 
-#load(paste(data_dir,"GAP_FEP_small_Gene_Expression_Data.RData",sep=""))
 load(paste(data_dir,"GAP_FEP_eset_linear_adj_Data.RData",sep=""))
 
 
@@ -249,17 +248,6 @@ ggplot(data = datatoplot,
             aes(CHROMOSOME,logFC,label=SYMBOL))+
       ggtitle(title)
 ggsave(paste(P1_figs_dir,title,".png",sep=""))
-
-
-
-table(datatoplot$CHROMOSOME)
-names(datatoplot)
-filter(datatoplot[,c(2,30:37)],logFC<=-0.2)
-filter(datatoplot[,c(2,30:37)],logFC<=-0.2)
-datatoplot%>%filter(CHROMOSOME==22)%>
-  
-mean_logfc<-datatoplot %>% group_by(CHROMOSOME) %>% summarise(avg = mean(logFC))
-View(mean_logfc[order(mean_logfc$avg),])
 
 
 ```

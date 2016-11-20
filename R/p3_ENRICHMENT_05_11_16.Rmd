@@ -8,10 +8,13 @@ output: html_document
 #load libraries and set workind directory
 ```{r}
 #libraries
+rm(list = ls())
+dev.off()
 library(reshape)
 library(WGCNA)
 library(flashClust)
 library(data.table)
+library(dplyr)
 
 #directories
 top_dir <-getwd()
@@ -23,22 +26,68 @@ P3_output_dir <-"./P3_Enrichment/output/"
 ```
 
 
+#Functions
+```{r Functions}
+
+#function to remove uneccesary lists, by overlap with background. 
+smaller_enrichmentlists<-function(enrichmentlist,Background,overlap){
+    print("number of categories at start")
+    print(length(unique(enrichmentlist$Eclass)))
+    #add column indicating presence in background.
+    print("col1")
+    enrichmentlist$InGAP<-enrichmentlist[,1]%in%Background
+    #Select only True rows
+    print("True")
+    dataTrue<-enrichmentlist%>%group_by(Eclass)%>%filter(InGAP==TRUE)
+    #Table of Eclass with False and True numbers
+    print("Eclass")
+    dataTrue<-as.data.frame(table(dataTrue$Eclass))
+    #find Eclass list with at least X (overlap) True probes.
+    print("Eclass2")
+    smalllist<-droplevels(dataTrue[dataTrue$Freq>=overlap,1])
+    print("number of categories at end")
+    print(length(smalllist))
+    #Make reduced list
+    return(enrichmentlist[enrichmentlist$Eclass%in%smalllist,1:2])
+}
+
+```
+
+
+
+#Enrichment data modification Adjust to data that is available. 
+```{r}
+#load background data
+all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
+all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header=TRUE)
+
+
+#define lists
+lists<-c("GO_Biological_Process_2015.csv","GO_Cellular_Component_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv")
+
+#read data and perform functions and write to output dir.  
+for(listname in lists){
+  inputdata<-read.csv(paste(data_dir,listname,sep=""))
+  listdata<-smaller_enrichmentlists(inputdata,all_probes$TargetID,20)
+  write.csv(listdata,file=paste(P3_output_dir,"GAP_reduced_",listname,sep=""),row.names=F)  
+}
+
+```
+
 ## User List Enrichement for Diffferentially expressed genes
 ```{r gene_list}
-setwd(top_dir)
-setwd(P1_output_dir)
-all_probes<-read.csv("Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv",sep="\t", header=TRUE)
+#load background data
+all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
+all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header=TRUE)
 
-setwd(top_dir)
-setwd(data_dir)
+
 #Subset to pvalue 0.05
-all_probes$Groups <-all_probes$adj.P.Val <= 0.05
+all_probes$Groups <-all_probes$adj.P.Val <= 0.005
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
-
-#enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("Kegg2016.csv"),catNmIn=c("KEGG_2016"),useBloodAtlases=F,useBrainLists=T, useImmunePathwayList=F)
-
-enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+setwd(top_dir)
+setwd(P3_output_dir)
+enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GAP_reduced_GO_Biological_Process_2015.csv","GAP_reduced_GO_Cellular_Component_2015.csv","GAP_reduced_GO_Molecular_Function_2015.csv","GAP_reduced_Kegg2016.csv"),catNmIn=c("GO_BP","GO_CC","GO_MF","KEGG_2016"))
 setwd(top_dir)
 
 enpv<-enrichments$pValue

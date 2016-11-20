@@ -8,6 +8,8 @@ output: html_document
 
 ##Install and load Libraries:
 ```{r Libraries, message=FALSE,warning=FALSE}
+rm(list = ls())
+dev.off()
 library(WGCNA);
 library(flashClust)
 
