@@ -31,7 +31,10 @@ proj/
 ├┬─ P3_Enrichment/  
 │├── figs/  
 │└── output/  
-├┬─ P4_Other_data/  
+├┬─ P4_Posthoc/  
+│├── figs/  
+│└── output/  
+├┬─ P5_Additional_dataset_Posthoc/  
 │├── figs/  
 │└── output/  
 ├── R/  
@@ -71,6 +74,7 @@ Also Cell Mix is performed to make sure everything is okay down the line.
 # Subproject 1: Diff Expression
 **Aims:**   
 Differential Expression adjusting for Ethnciity Age and Gender using Limma.
+
 
 **Input:**  
 LumiBatch object.  
@@ -129,10 +133,37 @@ Lumibatch Object
 Files.  
 Enrichment files.
 
-# Subproject 4: Other Data
+# Subproject 4: P4_Posthoc
+
+**Aims:**   
+Find what the impact of Medication and Tobacco and BMI is.  
+What genes are affected?
+Do Limma Ideally. 
+
+**Input:**  
+Lumibatch Object  
+
+**Script_Strategy:**    
 
 
-#Data Files
+1. *p4_Posthoc_med_21_11_16.Rmd*  
++ Script for userlistenrichment.
+
+
+**Output:**  
+Files.  
+Diff expression:  
+AF_vs_Con
+Ris_vs_Con
+Ola_vs_AF
+Ris_vs_AF
+Ris_vs_Ola
+Med_vs_AF_Con
+
+Enrichment files.  
+
+
+
 ---
 ####File template####
 File: ****  

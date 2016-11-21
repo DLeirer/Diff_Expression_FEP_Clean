@@ -13,6 +13,7 @@ dev.off()
 library(WGCNA);
 library(flashClust)
 library(tidyr)
+library(dplyr)
 ```
 
 
@@ -80,6 +81,32 @@ datTraits$Tobacco<-as.numeric(as.factor(datTraits$Tobacco))
 datTraits$Medication<-as.numeric(as.factor(datTraits$Medication))
 datTraits$SentrixBarcode<-as.numeric(as.factor(datTraits$SentrixBarcode))
 datTraits$AmplificationDate<-as.numeric(as.factor(datTraits$AmplificationDate))
+
+
+##Add all medication comparisions
+datTraits<-datTraits%>%mutate(
+  AF_vs_Con=ifelse(Medication == 2,2,
+            ifelse(Medication == 4,1,NA)),
+  Ris_vs_Con=ifelse(Medication == 8,2,
+            ifelse(Medication == 4,1,NA)),
+  Ola_vs_Con=ifelse(Medication == 6,2,
+            ifelse(Medication == 4,1,NA)),
+  Ris_vs_AF=ifelse(Medication == 8,2,
+            ifelse(Medication == 2,1,NA)),
+  Ola_vs_AF=ifelse(Medication == 6,2,
+            ifelse(Medication == 2,1,NA)),
+  Ris_vs_Ola=ifelse(Medication == 6,2,
+            ifelse(Medication == 8,1,NA)),
+  Med_vs_AF_Con=ifelse(Medication == 2,1,
+            ifelse(Medication == 4,1,2))
+  )
+
+
+
+
+
+
+
 
 ```
 
@@ -293,6 +320,8 @@ zlim = c(-1,1),
 main = paste("Module-trait relationships"))
 dev.off()
 
+names(datTraits)
+datTraits[,c(1,5,6,8:11)]
 moduleTraitCor = cor(MEs, datTraits[,c(1,5,8:11)], use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
@@ -318,6 +347,52 @@ main = paste("Module-trait relationships"))
 dev.off()
 
 pdf("Supplementary_Figure_2_Module_Trait_Relationships_reduced.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+names(datTraits)
+datTraits[,c(1,18:24,8:11,5,6)]
+moduleTraitCor = cor(MEs, datTraits[,c(1,18:24,8:11,5,6)], use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+
+
+jpeg(file="Module_Trait_Relationships_med.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_med.pdf")
 # Will display correlations and their p-values
 textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
 signif(moduleTraitPvalue, 1), ")", sep = "");
