@@ -12,7 +12,7 @@ rm(list = ls())
 dev.off()
 library(WGCNA);
 library(flashClust)
-
+library(tidyr)
 ```
 
 
@@ -107,7 +107,7 @@ dev.off()
 # Choose a set of soft-thresholding powers
 powers = c(1:15)
 # Call the network topology analysis function
-sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "signed")
+sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
 
 
 plotname2<-"scale_independence_plot.jpeg"
@@ -137,12 +137,12 @@ par(mfrow = c(1,1));
 ##net = blockwiseModules(t_gene_expression_matrix, power = 6, TOMType = "unsigned", minModuleSize = 10, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro= FALSE, saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM", verbose = 3)
 
 # 6.1 Set soft power beta=6
-softPower = 12;
+softPower = 6;
 adjacency = adjacency(t_gene_expression_matrix, power = softPower);
 
 
 # 6.2 Turn adjacency into topological overlap
-TOM = TOMsimilarity(adjacency,TOMType="signed");
+TOM = TOMsimilarity(adjacency,TOMType="unsigned");
 dissTOM = 1-TOM
 
 # 6.3  Call the hierarchical clustering function
@@ -239,6 +239,8 @@ MEs = mergedMEs;
 nGenes = ncol(t_gene_expression_matrix);
 nSamples = nrow(t_gene_expression_matrix);
 
+names(datTraits)
+
 # Recalculate MEs with color labels
 MEs0 = moduleEigengenes(t_gene_expression_matrix, moduleColors)$eigengenes
 MEs = orderMEs(MEs0)
@@ -246,13 +248,12 @@ moduleTraitCor = cor(MEs, datTraits, use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
 
-
 ```
 
 ```{r}
 
 
-jpeg(file="Module_Trait_Relationships.jpeg",width=800,height=850,pointsize = 20)
+jpeg(file="Module_Trait_Relationships.jpeg",width=1000,height=900,pointsize = 20)
 # Will display correlations and their p-values
 textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
 signif(moduleTraitPvalue, 1), ")", sep = "");
@@ -292,7 +293,49 @@ zlim = c(-1,1),
 main = paste("Module-trait relationships"))
 dev.off()
 
+moduleTraitCor = cor(MEs, datTraits[,c(1,5,8:11)], use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
+
+jpeg(file="Module_Trait_Relationships_reduced.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_reduced.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
 
 
 getwd()
@@ -354,7 +397,7 @@ pdf("Supplementary_Figure_ModuleMembership_above_median_Psychosis.pdf",height=8,
 for (c in 1:length(modNames)){
   module =modNames[c]
   moduleGenes2 = moduleColors==modNames[c]
-  if(module %in% c("turquoise","brown","blue")){
+  if(module %in% c("none")){
      
       verboseScatterplot(abs(geneModuleMembership[moduleGenes2,c]), abs(geneTraitSignificance[moduleGenes2, 1]),
                       xlab = paste("Module Membership in", module, "module"), 

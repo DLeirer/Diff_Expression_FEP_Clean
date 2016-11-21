@@ -82,7 +82,7 @@ all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header
 
 
 #Subset to pvalue 0.05
-all_probes$Groups <-all_probes$adj.P.Val <= 0.005
+all_probes$Groups <-all_probes$adj.P.Val <= 0.05
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
 setwd(top_dir)
@@ -109,11 +109,8 @@ setwd(top_dir)
 setwd(P2_output_dir)
 ## load WGCNA data
 geneInfo<-read.csv("Supplementary_table_6_WGCNA_geneInfo.csv")
-
-str(geneInfo)
-
 setwd(top_dir)
-setwd(data_dir)
+str(geneInfo)
 
 
 #Modules
@@ -184,14 +181,13 @@ write.table(as.data.frame(Output_w_background), file = fileName, row.names = FAL
 
 ```{r gene_list}
 
-setwd(top_dir)
-setwd(data_dir)
 
 ## Enrichment calculation. May take a couple of minutes. 
 
-enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
-
-enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],fnIn=c("GO_Biological_Process_2015.csv","GO_Molecular_Function_2015.csv","Kegg2016.csv"),catNmIn=c("GO_BP","GO_MF","KEGG_2016"),useBloodAtlases=T,useBrainLists=T, useImmunePathwayList=T)
+setwd(top_dir)
+setwd(P3_output_dir)
+enrichments_modules = userListEnrichment(Output_w_background[,1],Output_w_background[,2],fnIn=c("GAP_reduced_GO_Biological_Process_2015.csv","GAP_reduced_GO_Cellular_Component_2015.csv","GAP_reduced_GO_Molecular_Function_2015.csv","GAP_reduced_Kegg2016.csv"),catNmIn=c("GO_BP","GO_CC","GO_MF","KEGG_2016"))
+setwd(top_dir)
 
 ##significant overlaps
 enrichments_modules$sigOverlaps

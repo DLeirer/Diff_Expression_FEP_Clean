@@ -143,14 +143,15 @@ write.table(small_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"s
 de_res <- top_de_genes
 
 de_res <- de_res %>% 
-  mutate(SIG_DE=adj.P.Val <=0.05, 
+  mutate(SIG_DE=adj.P.Val <=0.01, 
          LogFC_DIRECTION=ifelse(logFC >= 0, "up-regulated",
                           ifelse(logFC < 0, "down-regulated", "no-change")),
          LogFC_BIOLOCICAL=ifelse(logFC >= 0.1, "up-regulated",
                          ifelse(logFC <= -0.1, "down-regulated", "no-sig-change")),
          PROBE_KEEP=ifelse( grepl("^LOC",TargetID),"DROP",
                        ifelse( grepl("^HS\\.",TargetID), "DROP","KEEP"))
-         )
+         ) %>% mutate(Sig_LogFC_probes = ifelse(SIG_DE==TRUE & LogFC_BIOLOCICAL != "no-sig-change","Diffexprs","BACKGROUND"))
+  
       
 ## Significantly DE Probes
 datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
@@ -159,16 +160,16 @@ datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
 table(datatoplot$PROBE_KEEP)
 
 ## Number of significant probes
-table(datatoplot$adj.P.Val <= 0.05)
+table(datatoplot$Sig_Logfc_probes)
 
 ## Number if sig probes using B-statistic
-table(datatoplot$B > 0)
+table(datatoplot$B > 1.5)
 
 ##All probes
 write.table(de_res, file=paste(P1_output_dir,"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
 ##Significant probes
-datatoplot_sig<-datatoplot[datatoplot$adj.P.Val <= 0.05,]
+datatoplot_sig<-datatoplot[datatoplot$adj.P.Val <= 0.01,]
 dim(datatoplot_sig)
 write.table(datatoplot_sig, file=paste(P1_output_dir,"Supplementary_Table_2_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
@@ -212,8 +213,9 @@ with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Diff
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
 with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
 with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
-with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
-    
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+
+
 # Label points with the textxy function from the calibrate plot
 with(datatoplot [c(1,4,8,9,10,12),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
 with(subset(datatoplot, logFC < -0.25 & adj.P.Val <0.002 ), textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5,offset = .6))
@@ -229,7 +231,7 @@ with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main="Volcano Plot of Diff
 # Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
 with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
 with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
-with(subset(datatoplot, adj.P.Val >0.05 ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
     
 # Label points with the textxy function from the calibrate plot
 with(datatoplot [c(1,4,8,9,10,12),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
