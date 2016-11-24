@@ -120,26 +120,7 @@ Non_Psychosis_corr<-intModules[]
 
 
 
-##  all probes with  >= median membership for their module and above median  >= Psychosis correlation. Only Turq, blue, brown.
 output_data<-data.frame()
-for (module in Psychosis_corr)
-  {
-  # Select module probes
-  modGenes = (geneInfo$moduleColor==module)
-  # Get the module genes
-  modGenes = (geneInfo$moduleColor==module)
-  # Get the module genes
-  sgeneInfo<-(geneInfo[modGenes, ])
-  #Select above median probes by psychosis status
-  sgeneInfo<-sgeneInfo[sgeneInfo$GS.psychosis >= median(sgeneInfo$GS.psychosis),]
-  #Select genes upregulated (above median in terms of module membership)
-  modcol<-paste("MM.",module,sep="")
-  genesf<-sgeneInfo[sgeneInfo[,modcol] >= median(sgeneInfo[,modcol]),c(1,4)]
-  # Add all modules to dataframe sequentially
-  output_data<-rbind(genesf,output_data)
-  
-}
-
 ##  All probes with >= median membership for their module, excluding the above and excluding psychosis.
 for (module in Non_Psychosis_corr)
   {
@@ -218,58 +199,6 @@ getwd()
 setwd(top_dir)
 setwd(P3_output_dir)
 write.csv(enpv_mmDF,file="Supplementary_Table_12_User_list_enrichment_WGCNA_results.csv",row.names=F)
-#write.csv(as.data.frame(enpvDT),file="Supplementary_Table_12_User_list_enrichment_WGCNA_results_full.csv")
-
-##make table displaying all categories per module
-table4v1<-enpv_mmDF[1:3]
-table4v1[,1]<-as.character(table4v1[,1])
-table4v1[,2]<-as.character(table4v1[,2])
-table4v1[,3]<-as.character(table4v1[,3])
-
-##Subcategories for each color
-#GO_BP
-values<-c("GO_BP","GO_MF","KEGG")
-
-##Index column for each category
-for (i in  values){
-  index<-grep(i, table4v1[,2])
-  table4v1[index,3]<-i
-
-}
-
-table4v1[,3]<-paste(table4v1[,1],table4v1[,3] , sep="__")
-
-
-tablecat<-table4v1[,2]
-
-##remove (GO endings)
-tablecat2<-sapply(strsplit(tablecat[], "\\(GO"), "[[", 1)
-tablecat2<-sapply(strsplit(tablecat2[], "__"), "[[", 1)
-tablecat2
-
-##remove module colors
-tablecatfinal<-gsub("^.*?_M.{1,2}_","",tablecat2)
-
-##put back in original dataframe
-table4v1[,4]<-tablecatfinal
-
-
-#write.csv(table4v1,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
-#View(table4v1)
-
-library(plyr)
-##Collapse per category
-table4v2<-ddply(table4v1[,c(3,4)], .(Type), summarise, V4=paste0(V4, collapse=", "),stringsAsFactors=FALSE)
-table4v3<- data.frame(do.call('rbind', strsplit(as.character(table4v2$Type),"__",fixed=TRUE)))
-table4v3[,3]<-table4v2[,2]
-colnames(table4v3)<- c("Module","Library","Enriched Categories" )
-write.csv(table4v3,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
-
+setwd(top_dir)
 ```
 
-
-
-```{r}
-
-
-```

@@ -170,7 +170,7 @@ Phenodat<-Phenodat%>% mutate(
 test_categories = c("AF_vs_Con","Ris_vs_Con","Ola_vs_Con","Ris_vs_AF","Ola_vs_AF","Ris_vs_Ola","Med_vs_AF","Med_vs_Con","Med_vs_AF_Con")
 
 
-for (testnum in test_categories[1:2]){  
+for (testnum in test_categories[1:9]){  
   
 test_cat<-testnum
 #subset to columns without na
