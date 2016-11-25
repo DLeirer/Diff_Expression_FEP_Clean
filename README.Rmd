@@ -3,12 +3,12 @@ title: "README_diff_expression_Project"
 author: "DJL"
 date: "15/09/2016"
 output:
+  word_document: default
   pdf_document:
     toc: yes
   html_document:
     toc: yes
     toc_float: yes
-  word_document: default
 ---
 
 #Project Overview
@@ -31,7 +31,10 @@ proj/
 ├┬─ P3_Enrichment/  
 │├── figs/  
 │└── output/  
-├┬─ P4_Other_data/  
+├┬─ P4_Posthoc/  
+│├── figs/  
+│└── output/  
+├┬─ P5_Additional_dataset_Posthoc/  
 │├── figs/  
 │└── output/  
 ├── R/  
@@ -58,10 +61,11 @@ Also Cell Mix is performed to make sure everything is okay down the line.
 
 **Script_Strategy:**  
   
-1. *p0_characterise_GAP_FEP_data_03_11_2016.Rmd*
-+ Characterise cohort. Plot demographics, make tables, do stats.
 1. *p0_CellMix_GAP_FEP_data_03_11_2016.Rmd*
 + apply cellmix to identify poetential confounders from cell proportions. 
+1. *p0_characterise_GAP_FEP_data_03_11_2016.Rmd*
++ Characterise cohort. Plot demographics, make tables, do stats.
+
 
 **Output:**  
 
@@ -70,6 +74,7 @@ Also Cell Mix is performed to make sure everything is okay down the line.
 # Subproject 1: Diff Expression
 **Aims:**   
 Differential Expression adjusting for Ethnciity Age and Gender using Limma.
+
 
 **Input:**  
 LumiBatch object.  
@@ -109,12 +114,56 @@ Files .
 
 
 
-# Subproject 3: 
+# Subproject 3: Enrichment
 
-# Subproject 4: Other Data
+**Aims:**   
+Enrichment of Diff Ex and WGCNA results.  
+
+**Input:**  
+Lumibatch Object  
+
+**Script_Strategy:**    
 
 
-#Data Files
+1. *p3_ENRICHMENT_05_11_16.Rmd*  
++ Script for userlistenrichment.
+
+
+**Output:**  
+Files.  
+Enrichment files.
+
+# Subproject 4: P4_Posthoc
+
+**Aims:**   
+Find what the impact of Medication and Tobacco and BMI is.  
+What genes are affected?
+Do Limma Ideally. 
+
+**Input:**  
+Lumibatch Object  
+
+**Script_Strategy:**    
+
+
+1. *p4_Posthoc_med_21_11_16.Rmd*  
++ Script for userlistenrichment.
+
+
+**Output:**  
+Files.  
+Diff expression:  
+AF_vs_Con
+Ris_vs_Con
+Ola_vs_AF
+Ris_vs_AF
+Ris_vs_Ola
+Med_vs_AF_Con
+
+Enrichment files.  
+
+
+
 ---
 ####File template####
 File: ****  
@@ -134,9 +183,12 @@ The Main Dataset is the Genes and Psychosis Data internal to the IoPPN.
 The following files are associated to this Data.  
 
 File: **Full Gene Expression Object**  
-*GAP_FEP_Full_Gene_Expression_Data.RData*  
+*GAP_FEP_Full_Gene_Expression_Data_Linear.RData*  
 Description:
-This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation, surrogate variable analysis.
+This file contains a lumibatch object with all probes deemed expressed. It is from the gene expression pre processing pipeline. Most probes here are defined as not expressed. It is First Episode Gap Samples, processed using background correction, log 2 transformed, robust spline normalisation. The following tech variables have been regressed out using a linear model:  
+ConcNanodrop, Dateout, concentrationoflabelledcRNA, DatecRNApurification  
+
+
 
 Source file name:  
 *FINAL_GAP_DL_FEP.eset_bg_log2_rsn_SVA_Good.RData*  

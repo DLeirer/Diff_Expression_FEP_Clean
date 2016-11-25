@@ -1,0 +1,396 @@
+---
+title: "Medication Tobacco Etc"
+author: "DJL"
+date: "29/09/2016"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+#Overview
+
+**Aim**  
+Functions for plotting Medication and other Enviromental influences on gene expression.
+
+Data needed = 
+Gene expression data (Lumiobject)
+Medication data
+
+#Pseudocode
+
+```{r PseudoCode}
+
+
+
+
+
+```
+
+
+#Libraries
+```{r load_libs, tidy=TRUE}
+rm(list=ls())
+gc()
+
+library(lumi)
+library(limma)
+library(dplyr)
+library(devtools)
+library(ggbiplot)
+
+```
+
+#Functions
+```{r define functions, tidy=TRUE}
+
+extract_expression_DF <- function(lumibatch_object) {
+  gene<- t(exprs(lumibatch_object))
+  probenames<-lumibatch_object@featureData@data
+  colnames(gene) <- probenames$TargetID
+  #remove duplicates
+  gene_small <- gene[, !duplicated(colnames(gene))]
+  t(gene_small)   
+}
+
+
+pheno_data_clean_fun <- function(translate_input,CHIP_IDs,pheno_med_input) {
+  temp_df<-translate_input[translate_input$CHIP_ID%in%CHIP_IDs,c("BARCODE","CHIP_ID")]
+  colnames(temp_df)<-c("SampleID","CHIP_ID")
+  inner_join(temp_df,pheno_med_input,by="SampleID")
+ }
+
+
+#### Anova functions
+#Change column names and make new dataframe
+prep_gx_df_for_anova_fun <- function(input_df) {
+  probelist<-colnames(input_df)[-c(1:2)]
+  tempIds<-paste("IndexID",1:length(probelist),sep="")
+  colnames(input_df)<-c("CHIP_ID","Medication",tempIds)
+  input_df
+  print("InputDFcomplete")
+  probeoutput<-prep_empty_df_for_anova_fun(probelist=probelist)
+  print("Empty_df_complete")
+  anova_loop_all_Probes_fun(GX_df=input_df,Med_col="Medication",probelist=probelist,tempIds=tempIds,probeoutput=probeoutput)  
+}
+
+#create empty dataframe
+prep_empty_df_for_anova_fun <- function(probelist) {
+  probeoutput<-data.frame(probelist)
+  newcolnames<- c("Df1","Df2","Sum Sq1","Sum_Sq2","Mean_Sq1","Mean_Sq2","F_value1","F_value2","Prf1","Prf2","probe_check")
+  probeoutput[,newcolnames]<-"EMPTY"
+  probeoutput<-probeoutput[,-1]
+  rownames(probeoutput)<-probelist
+  probeoutput
+}
+
+#Anova loop function
+anova_loop_all_Probes_fun <- function(GX_df,Med_col,probelist,tempIds,probeoutput) {
+    for(x in 1:length(probelist)){
+      model.aov <- aov(as.formula(paste(tempIds[x], "~", Med_col,sep=" ")), data = GX_df) 
+      pval<-unlist(summary(model.aov))
+      probeoutput[x,1:10]<-pval
+      probeoutput[x,11]<-probelist[x]
+    }
+  probeoutput
+}
+
+
+#Anova results find significant values
+anova_sig_fun <- function(input) {
+  input[,c(9,11)]%>%
+    filter(Prf1 < 0.05)%>%
+    arrange(Prf1)
+}
+
+
+```
+
+
+
+#Directories
+```{r Define directories}
+getwd()
+data_dir <- "./data/"
+Covariate_data_dir <- "./GAP_Data/Covariate_Data/"
+Expression_data_dir <- "./GAP_Data/Gene_Expression_Lumi_Batch_file/"
+output_dir <-"./pMedication_added/output/"
+getwd()
+```
+
+#Load Data
+```{r Load data}
+load(paste(Expression_data_dir,"GAP_Lumibatch_Clean_09_05_2016.RData",sep=""))
+Med_data<-read.csv(paste(Covariate_data_dir,"Daniel_RNA_DQ.csv",sep=""),na.strings = c("", " "))
+pheno_data<-read.csv(paste(Covariate_data_dir,"gap_pheno_data.csv",sep=""),na.strings = c("", " "))
+```
+
+
+
+
+
+#Prepare data
+```{r prep data}
+eset_bg_log2_rsn_SVA_Good
+
+
+#get gene expression dataframe
+Gene_DF<-extract_expression_DF(eset_bg_log2_rsn_SVA_Good)
+#Get ChipIDs into med_data
+Med_data_clean<-pData(eset_bg_log2_rsn_SVA_Good)
+
+#Define categories
+Med_data_clean<-Med_data_clean[Reduce('|', lapply(Med_data_clean, '%in%', c("Antipsychotic free","Risperidone","Olanzapine"))),]
+
+
+exprs_med<-merge(Med_data_clean[,c("sampleID","Medication")],t(Gene_DF),by="row.names")
+#exprs_med$Medication<-as.numeric(exprs_med$Medication)
+row.names(exprs_med)<-exprs_med$sampleID
+exprs_med<-exprs_med[,-c(1:2)]
+exprs_med[1:10,1:10]
+
+#exprs_med$Medication<-droplevels(exprs_med$Medication)
+
+#ANOVA
+
+#probelist<-rownames(Gene_DF)
+#Normal Distribute?
+#plot(density(exprs_med$NRGN));
+#qqnorm(exprs_med$NRGN);qqline(exprs_med$NRGN, col = 2)
+exprs_med[1:10,]
+test<-prep_gx_df_for_anova_fun(exprs_med[,1:50])
+test
+
+
+#3 groups olanzapine risperidone antipsychotic free
+ola_ris_AF_groups<-prep_gx_df_for_anova_fun(exprs_med)
+ola_ris_AF<-anova_sig_fun(ola_ris_AF_groups)
+
+
+
+
+
+#antipsychotic free vs risperidone and olanzapine as a group
+exprs_med2<-exprs_med
+Med_free<-exprs_med$Medication == "Antipsychotic free"
+Med_free<-replace(Med_free, Med_free,"No_Med")
+exprs_med2$Medication<-replace(Med_free, Med_free == "FALSE","Medication")
+
+Med_yes_no_groups<-prep_gx_df_for_anova_fun(exprs_med2)
+Med_yes_no<-anova_sig_fun(Med_yes_no_groups)
+
+Med_yes_no
+
+#antipsychotic free vs risperidone 
+exprs_med2<-exprs_med
+exprs_AF_vs_RIS<-exprs_med2[!exprs_med2$Medication =="Olanzapine",]
+AF_vs_RIS<-prep_gx_df_for_anova_fun(exprs_AF_vs_RIS)
+AF_vs_RIS_stats<-anova_sig_fun(AF_vs_RIS)
+AF_vs_RIS_stats
+
+
+#antipsychotic free vs Olanzapine
+exprs_med2<-exprs_med
+exprs_AF_vs_ola<-exprs_med2[!exprs_med2$Medication =="Risperidone",]
+AF_vs_ola<-prep_gx_df_for_anova_fun(exprs_AF_vs_ola)
+AF_vs_ola_stats<-anova_sig_fun(AF_vs_ola)
+AF_vs_ola_stats
+
+
+#Risperidone vs Olanzapine
+exprs_ris_vs_ola<-exprs_med2[!exprs_med2$Medication =="Antipsychotic free",]
+ris_vs_ola<-prep_gx_df_for_anova_fun(exprs_ris_vs_ola)
+ris_vs_ola_stats<-anova_sig_fun(ris_vs_ola)
+ris_vs_ola_stats
+
+
+names<-c("ola_ris_AF","Med_yes_no","ris_vs_ola_stats","AF_vs_ola_stats","AF_vs_RIS_stats")
+result_list<-list(ola_ris_AF,Med_yes_no,ris_vs_ola_stats,AF_vs_ola_stats,AF_vs_RIS_stats)
+names[2]
+
+
+#write to file
+for(i in 1:5){
+  write.csv(result_list[i],file=paste(output_dir,names[i],".csv",sep=""))
+}
+
+#Make above for Smoker vs non Smoker
+1.) Make above for Drug naive vs Risperidone & Olanzapine combined
+2.) Make above for Drug naive vs Risperidone 
+3.) Make above for Drug naive vs Olanzapine
+4.) Make above for Risperidone vs Olanzapine
+
+#Make above for Smoker vs non Smoker
+
+loop through each gene and just do a simple anova and test of differences in mean expression between each drug class. 
+
+1st do drug v no drug
+
+then compare each drug class 
+
+choose appropriate test if data not  normal. 
+
+
+
+############################################################### IGNORE THIS PART FOR NOW ##########################################################################
+
+
+
+#PCA and colour by drug groups
+#https://www.r-bloggers.com/computing-and-visualizing-pca-in-r/
+
+data(iris)
+head(iris, 3)
+
+t(Gene_DF[1:10,1:10])
+Med_data_clean
+exprs_med<-merge(t(Gene_DF),Med_data_clean,by.x = "row.names" ,by.y = "CHIP_ID")
+
+
+
+exprs_med2<-exprs_med[,-1]
+exprs_med2<-exprs_med2[,1:4194]
+tail(t(exprs_med2[1:10,]))
+
+exprs_med2<-t(exprs_med[,-"Medication"])
+
+exprs_med
+
+tail(exprs_med3[,1:10])
+
+dim(exprs_med2)
+
+c("NRGN","SEPT5"),"DEFA1","HINT1","DEFA1B","RPL31","RPS15A","LCN2"
+
+log.ir <- log(iris[, 1:4]) #dependent genes
+log.ir<-exprs_med2[,]
+#ir.species <- iris[, 5] #independent medication
+ir.species<-exprs_med$Medication
+
+# apply PCA - scale. = TRUE is highly 
+# advisable, but default is FALSE. 
+ir.pca <- prcomp(log.ir,
+                 center = TRUE,
+                 scale. = TRUE) 
+
+
+print(ir.pca)
+
+
+plot(ir.pca, type = "l")
+
+
+summary(ir.pca)
+
+predict(ir.pca, 
+        newdata=tail(log.ir, 2))
+
+
+
+g <- ggbiplot(ir.pca, obs.scale = 1, var.scale = 1, var.axes = F, 
+              varname.size = 0.3,
+              groups = ir.species, ellipse = TRUE, 
+              circle = T)
+g <- g + scale_color_discrete(name = '')
+g <- g + theme(legend.direction = 'horizontal', 
+               legend.position = 'top')
+print(g)
+##########################################################################################
+
+
+
+
+
+plot(correlation[as.vector(top_probes[,"V1"]),"BMI"])
+
+
+
+t_Gene_DF<-t(Gene_DF)
+rownames(t_Gene_DF)
+
+?filter
+chip_bmi<-
+
+  
+  
+
+
+correlation<-cor(exprs_bmi[,-c(1)])
+plot(correlation[,"BMI"])
+plot(correlation[as.vector(top_probes[,"V1"]),"BMI"])
+
+
+#function for making dataframes for plotting. 
+
+
+GAP_Med_Cases<-GAP_Med_Calc
+GAP_Medicationll<-GAP_Med_Calc
+GAP_Med_Ris<-GAP_Med_Calc[GAP_Med_Calc$Medication == "Risperidone",]
+GAP_Med_Ola<-GAP_Med_Calc[GAP_Med_Calc$Medication == "Olanzapine",]
+GAP_MedicationF<-GAP_Med_Calc[GAP_Med_Calc$Medication == "Antipsychotic free",]
+
+exprs_case<-t(exprsdata[,GAP_Medicationll$CHIP_ID])
+exprs_ris<-t(exprsdata[,GAP_Med_Ris$CHIP_ID])
+exprs_ola<-t(exprsdata[,GAP_Med_Ola$CHIP_ID])
+exprs_af<-t(exprsdata[,GAP_MedicationF$CHIP_ID])
+
+##Average data
+Case<-apply(exprs_case,2,mean)
+ris<-apply(exprs_ris,2,mean)
+ola<-apply(exprs_ola,2,mean)
+af<-apply(exprs_af,2,mean)
+
+
+full_matrix = cbind(Case,ris,ola,af)
+full_matrix[1:10,]
+
+top_probes
+
+top_probes<-read.csv("Probes.csv")
+top_matrix<-full_matrix[rownames(full_matrix)%in%top_probes$SYMBOL,]
+top_matrix<-as.data.frame(top_matrix)
+
+new_matrix<-data.frame()
+
+for(i in 1:length(top_matrix[,1])){
+  new_matrix<-rbind(new_matrix,(top_matrix[i,]-mean(as.matrix(top_matrix[i,]))))
+  
+}
+
+new_matrix<-new_matrix[,c(1,4,2:3)]
+
+jpeg(file="Medication_A_16_09_29.jpeg",width=800,height=800,pointsize = 15)
+Heatmap(new_matrix, name = "Relative Expression Level", row_title="Genes",cluster_rows = T, cluster_columns = FALSE,row_hclust_side = "right")
+dev.off()
+
+jpeg(file="GAP_Longitudinal_linegraph_Paper_probes_16_11_12.jpeg",width=800,height=800,pointsize = 15)
+matplot(t(new_matrix), type = c("b"),pch=1, ylab="Gene Expression", xlab= "Antipsychotic",main="Average Expression Of Top Probes",axes=F) #plot
+axis(side=1,at=1:4,labels=c("All_Cases","Free","Risperidone","Olanzapine"))
+axis(2)
+dev.off()
+
+
+
+##Correlation
+chip_bmi<-GAP_Med_Calc[,c("CHIP_ID","Medication")]
+exprs_bmi<-merge(t(exprsdata),chip_bmi,by.x = "row.names" ,by.y = "CHIP_ID")
+
+exprs_bmi[]
+
+
+correlation<-cor(exprs_bmi[,-c(1)])
+plot(correlation[,"BMI"])
+plot(correlation[as.vector(top_probes[,"V1"]),"BMI"])
+write.csv(t(data.frame(as.list(sort(correlation[as.vector(top_probes[,"V1"]),"BMI"])))),file="Correlation_BMI_TOP_PROBES_CASE_070116.csv",)
+
+
+```
+
+
+
+
+
+
+
+
+
+

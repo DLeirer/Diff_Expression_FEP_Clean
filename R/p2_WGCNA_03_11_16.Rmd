@@ -6,37 +6,50 @@ output: html_document
 ---
 
 
-
-```{r}
-# Set Directories
-
-phenodir <-"~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/GAP_Data/Covariate_Data" #phenotype directory
-datadir <- "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/GAP_Data/Gene_Expression_Lumi_Batch_file" #Data Directory containg lumibatch file with gene expression data.
-workingDir = "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/WGCNA/WGCNA_Results"
-setwd(workingDir)
-
-# Load the package
+##Install and load Libraries:
+```{r Libraries, message=FALSE,warning=FALSE}
+rm(list = ls())
+dev.off()
 library(WGCNA);
 library(flashClust)
+library(tidyr)
+library(dplyr)
+```
+
+
+##Set directories:
+```{r directory}
+topdir<-getwd()
+data_dir <-"./P0_Characterise/output/"
+P2_output_dir <-"./P2_WGCNA/output/"
+P2_figs_dir <-"./P2_WGCNA/figs/"
+
+```
+
+##Load data and Settings
+```{r data and settings}
+
+
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE);
 
-getwd()
-#load Gene expression data
-setwd(datadir)
-load("GAP_Lumibatch_Clean_09_05_2016.RData")
-setwd(workingDir);
 
-str(neweset2)
-neweset2 <- eset_bg_log2_rsn_SVA_Good
+#data="GAP_FEP_Full_Gene_Expression_Data.RData"
+data="GAP_FEP_eset_linear_adj_Data.RData"
+
+#load Gene expression data
+load(paste(data_dir,data,sep=""))
+
+GX_lumi_object<-eset_linear_adj
 
 # remove duplicate probes and use gene symbols
-gene<- t(exprs(neweset2))
-probenames<-neweset2@featureData@data
+gene<- t(exprs(GX_lumi_object))
+probenames<-GX_lumi_object@featureData@data
 colnames(gene) <- probenames$TargetID
-gene_small <- gene[, !duplicated(colnames(gene))]
-gene_expression_matrix<-t(gene_small)
-t_gene_expression_matrix<-gene_small
+gene_expression_matrix<-t(gene)
+t_gene_expression_matrix<-gene
+
+
 
 dim(t_gene_expression_matrix)
 
@@ -46,30 +59,63 @@ gsg$allOK
 ```
 
 ##Loading Phenotype Data
-```{r}
+```{r load pheno}
+names(pData(GX_lumi_object))
+allTraits<-pData(GX_lumi_object)[,c(1,11:17,21:26,32:33,62,63)]
 
-allTraits<-neweset2@phenoData@data[,c(1,5,2,4)]
-
-## More traits removed
-colnames(allTraits)<-c("CHIP_ID","Phenotype","Age","Gender")
-
+## Change Tech Names
+colnames(allTraits)[13:16]<-c("RIN","SentrixBarcode","Nanodrop","AmplificationDate")
+colnames(allTraits)
 
 # Form a data frame analogous to expression data that will hold the clinical traits.
 samples = rownames(t_gene_expression_matrix);
-traitRows = match(samples, allTraits$CHIP_ID);
+traitRows = match(samples, allTraits$sampleID);
 datTraits = allTraits[traitRows, -1];
 rownames(datTraits) = allTraits[traitRows, 1];
 collectGarbage();
+str(datTraits)
 datTraits$Phenotype<-as.numeric(as.factor(datTraits$Phenotype))
 datTraits$Gender<-as.numeric(as.factor(datTraits$Gender))
+datTraits$Ethnicity<-as.numeric(as.factor(datTraits$Ethnicity))
+datTraits$Tobacco<-as.numeric(as.factor(datTraits$Tobacco))
+datTraits$Medication<-as.numeric(as.factor(datTraits$Medication))
+datTraits$SentrixBarcode<-as.numeric(as.factor(datTraits$SentrixBarcode))
+datTraits$AmplificationDate<-as.numeric(as.factor(datTraits$AmplificationDate))
+
+
+##Add all medication comparisions
+datTraits<-datTraits%>%mutate(
+  AF_vs_Con=ifelse(Medication == 2,2,
+            ifelse(Medication == 4,1,NA)),
+  Ris_vs_Con=ifelse(Medication == 8,2,
+            ifelse(Medication == 4,1,NA)),
+  Ola_vs_Con=ifelse(Medication == 6,2,
+            ifelse(Medication == 4,1,NA)),
+  Ris_vs_AF=ifelse(Medication == 8,2,
+            ifelse(Medication == 2,1,NA)),
+  Ola_vs_AF=ifelse(Medication == 6,2,
+            ifelse(Medication == 2,1,NA)),
+  Ris_vs_Ola=ifelse(Medication == 6,2,
+            ifelse(Medication == 8,1,NA)),
+  Med_vs_AF_Con=ifelse(Medication == 2,1,
+            ifelse(Medication == 4,1,2))
+  )
+
+
+
+
+
+
 
 
 ```
 
 ## Plot completion of samples
 ```{r}
-setwd(workingDir)
-jpeg(file="sample_dendrogram.jpeg",width=1000,height=800,pointsize = 12)
+
+plotname<-"sample_dendrogram.jpeg"
+
+jpeg(file=paste(P2_figs_dir,plotname,sep=""),width=1000,height=800,pointsize = 12)
 # Re-cluster samples
 sampleTree2 = flashClust(dist(t_gene_expression_matrix), method = "average")
 # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -79,22 +125,20 @@ plotDendroAndColors(sampleTree2, traitColors,
 groupLabels = names(datTraits),
 main = "Sample dendrogram and trait heatmap")
 dev.off()
-```
-
-
-```{r}
-save(t_gene_expression_matrix, datTraits, file = "GAP_Psychosis-01-dataInput2.RData")
 
 
 ```
+
 
 ```{r}
 # Choose a set of soft-thresholding powers
-powers = c(c(1:10), seq(from = 12, to=20, by=2))
+powers = c(1:15)
 # Call the network topology analysis function
 sft = pickSoftThreshold(t_gene_expression_matrix, powerVector = powers, verbose = 5, networkType = "unsigned")
 
-jpeg(file="scale_independence_plot.jpeg",width=1000,height=800,pointsize = 12)
+
+plotname2<-"scale_independence_plot.jpeg"
+jpeg(file=paste(P2_figs_dir,plotname2,sep=""),width=1000,height=800,pointsize = 12)
 # Plot the results:
 par(mfrow = c(1,2));
 cex1 = 0.9;
@@ -133,7 +177,8 @@ geneTree = hclust(as.dist(dissTOM), method = "average");
 
 
 # Plot the resulting clustering tree (dendrogram)
-png("Clustering_tree.png")
+clust_tree<-"Clustering_tree.png"
+png(paste(P2_figs_dir,clust_tree,sep=""))
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
 dev.off()
@@ -142,7 +187,7 @@ dev.off()
 # 6.4 Module identification
 
 # We like large modules, so we set the minimum module size relatively high:
-minModuleSize = 30;
+minModuleSize = 20;
 # Module identification using dynamic tree cut:
 dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM, deepSplit = 2, pamRespectsDendro = FALSE, minClusterSize = minModuleSize);
 table(dynamicMods)
@@ -151,7 +196,8 @@ table(dynamicMods)
 dynamicColors = labels2colors(dynamicMods)
 table(dynamicColors)
 
-png("Dendrorogram.png")
+clust_tree<-"Dendrorogram.png"
+png(paste(P2_figs_dir,clust_tree,sep=""))
 plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut", dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, guideHang = 0.05, main = "Gene dendrogram and module colors")
 dev.off()
 
@@ -164,12 +210,12 @@ MEDiss = 1-cor(MEs);
 # Cluster module eigengenes
 METree = hclust(as.dist(MEDiss), method = "average");
 
-
+setwd(P2_figs_dir)
 # 6.7  Plot the results and see whether some Modules are highly correlated and therefore would be better to be merged
 # Plot the cut line into the dendrogram
 png("ME clustering.png")
 plot(METree, main = "Clustering of module eigengenes",xlab = "", sub = "")
-MEDissThres = 0.25 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
+MEDissThres = 0.2 # we set the threshold of 0.25 ( scale is 0 to 1 - the smallest the value the more correlated)
 abline(h=MEDissThres, col = "red")
 dev.off()
 
@@ -220,18 +266,21 @@ MEs = mergedMEs;
 nGenes = ncol(t_gene_expression_matrix);
 nSamples = nrow(t_gene_expression_matrix);
 
+names(datTraits)
+
 # Recalculate MEs with color labels
 MEs0 = moduleEigengenes(t_gene_expression_matrix, moduleColors)$eigengenes
 MEs = orderMEs(MEs0)
 moduleTraitCor = cor(MEs, datTraits, use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
+
 ```
 
 ```{r}
 
 
-jpeg(file="Module_Trait_Relationships.jpeg",width=800,height=850,pointsize = 20)
+jpeg(file="Module_Trait_Relationships.jpeg",width=1000,height=900,pointsize = 20)
 # Will display correlations and their p-values
 textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
 signif(moduleTraitPvalue, 1), ")", sep = "");
@@ -271,7 +320,97 @@ zlim = c(-1,1),
 main = paste("Module-trait relationships"))
 dev.off()
 
+names(datTraits)
+datTraits[,c(1,5,6,8:11)]
+moduleTraitCor = cor(MEs, datTraits[,c(1,5,8:11)], use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
+
+jpeg(file="Module_Trait_Relationships_reduced.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_reduced.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+names(datTraits)
+datTraits[,c(1,18:24,8:11,5,6)]
+moduleTraitCor = cor(MEs, datTraits[,c(1,18:24,8:11,5,6)], use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+
+
+jpeg(file="Module_Trait_Relationships_med.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_med.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
 
 
 getwd()
@@ -333,7 +472,7 @@ pdf("Supplementary_Figure_ModuleMembership_above_median_Psychosis.pdf",height=8,
 for (c in 1:length(modNames)){
   module =modNames[c]
   moduleGenes2 = moduleColors==modNames[c]
-  if(module %in% c("turquoise","brown","blue")){
+  if(module %in% c("none")){
      
       verboseScatterplot(abs(geneModuleMembership[moduleGenes2,c]), abs(geneTraitSignificance[moduleGenes2, 1]),
                       xlab = paste("Module Membership in", module, "module"), 
@@ -366,7 +505,7 @@ dev.off()
 ##annot$nuID
 ##str(annot)
 
-annot<- fData(neweset2)
+annot<- fData(GX_lumi_object)
 dim(annot)
 names(annot)
 
@@ -405,5 +544,9 @@ geneInfo = geneInfo0[geneOrder, ]
 ```
 
 ```{r}
+setwd(topdir)
+setwd(P2_output_dir)
+
 write.csv(geneInfo, file = "Supplementary_table_6_WGCNA_geneInfo.csv")
+setwd(topdir)
 ```

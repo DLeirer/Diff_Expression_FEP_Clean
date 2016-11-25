@@ -1,0 +1,75 @@
+"InputCategories","UserDefinedCategories","Type","CorrectedPvalues"
+"greenyellow","cellular response to type I interferon (GO:0071357)__GO_BP","User",4.20121046685754e-20
+"greenyellow","type I interferon signaling pathway (GO:0060337)__GO_BP","User",4.20121046685754e-20
+"greenyellow","response to type I interferon (GO:0034340)__GO_BP","User",6.96551686473103e-20
+"greenyellow","defense response to virus (GO:0051607)__GO_BP","User",1.55559120434359e-18
+"greenyellow","response to virus (GO:0009615)__GO_BP","User",1.11986706927831e-17
+"greenyellow","cytokine-mediated signaling pathway (GO:0019221)__GO_BP","User",1.09115638566343e-14
+"greenyellow","response to other organism (GO:0051707)__GO_BP","User",4.30846714801964e-14
+"greenyellow","defense response to other organism (GO:0098542)__GO_BP","User",5.15104015120484e-14
+"greenyellow","cellular response to cytokine stimulus (GO:0071345)__GO_BP","User",1.23743025422551e-12
+"greenyellow","negative regulation of viral genome replication (GO:0045071)__GO_BP","User",8.27113289572177e-10
+"greenyellow","negative regulation of viral process (GO:0048525)__GO_BP","User",1.19453213060168e-09
+"greenyellow","regulation of viral genome replication (GO:0045069)__GO_BP","User",8.51882947125793e-09
+"greenyellow","negative regulation of multi-organism process (GO:0043901)__GO_BP","User",3.16904625011329e-07
+"greenyellow","regulation of viral process (GO:0050792)__GO_BP","User",1.17309468285144e-06
+"greenyellow","regulation of symbiosis, encompassing mutualism through parasitism (GO:0043903)__GO_BP","User",3.16233868074284e-06
+"turquoise","actin filament-based process (GO:0030029)__GO_BP","User",4.42179661914184e-06
+"yellow","nucleolus (GO:0005730)__GO_CC","User",8.7248111968861e-06
+"turquoise","hemostasis (GO:0007599)__GO_BP","User",1.18875342286727e-05
+"greenyellow","response to interferon-gamma (GO:0034341)__GO_BP","User",1.21420949553807e-05
+"turquoise","blood coagulation (GO:0007596)__GO_BP","User",1.48972566061606e-05
+"turquoise","coagulation (GO:0050817)__GO_BP","User",1.48972566061606e-05
+"greenyellow","Herpes simplex infection_Homo sapiens_hsa05168__KEGG_2016","User",1.53525039938384e-05
+"greenyellow","Measles_Homo sapiens_hsa05162__KEGG_2016","User",3.78739582487609e-05
+"greenyellow","regulation of multi-organism process (GO:0043900)__GO_BP","User",4.08255062176673e-05
+"turquoise","actin cytoskeleton organization (GO:0030036)__GO_BP","User",4.50025726337901e-05
+"black","viral transcription (GO:0019083)__GO_BP","User",5.72384587757843e-05
+"black","translational termination (GO:0006415)__GO_BP","User",9.03987053581425e-05
+"turquoise","actin binding (GO:0003779)__GO_MF","User",0.00015180895545954
+"greenyellow","Hepatitis C_Homo sapiens_hsa05160__KEGG_2016","User",0.000172733380121022
+"greenyellow","Influenza A_Homo sapiens_hsa05164__KEGG_2016","User",0.000196451783313019
+"black","cellular protein complex disassembly (GO:0043624)__GO_BP","User",0.000212106385639356
+"black","translational elongation (GO:0006414)__GO_BP","User",0.000242746482626604
+"black","translational initiation (GO:0006413)__GO_BP","User",0.000291106667368422
+"black","Ribosome_Homo sapiens_hsa03010__KEGG_2016","User",0.000669432714428764
+"black","ribosomal subunit (GO:0044391)__GO_CC","User",0.000754275327004239
+"black","viral life cycle (GO:0019058)__GO_BP","User",0.000754275327004239
+"turquoise","extracellular vesicular exosome (GO:0070062)__GO_CC","User",0.000812470589213474
+"black","nuclear-transcribed mRNA catabolic process, nonsense-mediated decay (GO:0000184)__GO_BP","User",0.000848571308265384
+"black","SRP-dependent cotranslational protein targeting to membrane (GO:0006614)__GO_BP","User",0.000848571308265384
+"black","cotranslational protein targeting to membrane (GO:0006613)__GO_BP","User",0.000953229937527499
+"black","protein complex disassembly (GO:0043241)__GO_BP","User",0.000953229937527499
+"brown","phagosome maturation (GO:0090382)__GO_BP","User",0.00103860101138797
+"black","protein targeting to ER (GO:0045047)__GO_BP","User",0.00106923404257086
+"turquoise","platelet activation (GO:0030168)__GO_BP","User",0.00112121176077359
+"black","macromolecular complex disassembly (GO:0032984)__GO_BP","User",0.00133960677421152
+"black","establishment of protein localization to endoplasmic reticulum (GO:0072599)__GO_BP","User",0.00149635318780732
+"black","protein localization to endoplasmic reticulum (GO:0070972)__GO_BP","User",0.00149635318780732
+"black","structural constituent of ribosome (GO:0003735)__GO_MF","User",0.00149635318780732
+"black","ribosome (GO:0005840)__GO_CC","User",0.00166921145435685
+"turquoise","small GTPase mediated signal transduction (GO:0007264)__GO_BP","User",0.00242496999199226
+"brown","Osteoclast differentiation_Homo sapiens_hsa04380__KEGG_2016","User",0.00266253502565527
+"turquoise","Viral carcinogenesis_Homo sapiens_hsa05203__KEGG_2016","User",0.00290288847660081
+"turquoise","Endocytosis_Homo sapiens_hsa04144__KEGG_2016","User",0.00419791889467356
+"greenyellow","regulation of type I interferon production (GO:0032479)__GO_BP","User",0.00429370980330878
+"black","protein targeting to membrane (GO:0006612)__GO_BP","User",0.00512668305076156
+"black","cytosolic part (GO:0044445)__GO_CC","User",0.0106920814995452
+"turquoise","cell-cell junction (GO:0005911)__GO_CC","User",0.0109963309038384
+"greenyellow","interferon-gamma-mediated signaling pathway (GO:0060333)__GO_BP","User",0.0141621929710134
+"black","nuclear-transcribed mRNA catabolic process (GO:0000956)__GO_BP","User",0.0151039701781053
+"brown","Tuberculosis_Homo sapiens_hsa05152__KEGG_2016","User",0.0155813440914884
+"black","mRNA catabolic process (GO:0006402)__GO_BP","User",0.0178609289833942
+"turquoise","microtubule (GO:0005874)__GO_CC","User",0.0209496050908505
+"turquoise","Focal adhesion_Homo sapiens_hsa04510__KEGG_2016","User",0.0230986066113225
+"brown","extracellular matrix organization (GO:0030198)__GO_BP","User",0.0241659308868359
+"brown","extracellular structure organization (GO:0043062)__GO_BP","User",0.0241659308868359
+"brown","plasma membrane region (GO:0098590)__GO_CC","User",0.0304472798722291
+"greenyellow","cellular response to interferon-gamma (GO:0071346)__GO_BP","User",0.0309248104718137
+"black","translation (GO:0006412)__GO_BP","User",0.0342667200264568
+"yellow","nucleoplasm (GO:0005654)__GO_CC","User",0.0382926419521738
+"turquoise","RNA polymerase II regulatory region DNA binding (GO:0001012)__GO_MF","User",0.0403883817524247
+"black","RNA catabolic process (GO:0006401)__GO_BP","User",0.0458052967603451
+"turquoise","positive regulation of GTPase activity (GO:0043547)__GO_BP","User",0.0470296958110838
+"turquoise","positive regulation of GTP catabolic process (GO:0033126)__GO_BP","User",0.0470296958110838
+"brown","response to lipopolysaccharide (GO:0032496)__GO_BP","User",0.0489634627707114

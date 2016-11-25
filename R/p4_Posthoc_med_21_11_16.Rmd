@@ -1,0 +1,389 @@
+---
+title: "Medication Tobacco Etc"
+author: "DJL"
+date: "29/09/2016"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+#Overview
+
+**Aim**  
+Functions for plotting Medication and other Enviromental influences on gene expression.
+
+Data needed = 
+Gene expression data (Lumiobject)
+Medication data
+
+#Pseudocode
+
+```{r PseudoCode}
+
+
+
+
+
+```
+
+
+#Libraries
+```{r load_libs, tidy=TRUE}
+rm(list=ls())
+gc()
+library(lumi)
+library(limma)
+library(dplyr)
+library(Tmisc)
+library(calibrate)
+library(ggplot2)
+library(devtools)
+library(ggbiplot)
+
+```
+
+#Functions
+```{r define functions, tidy=TRUE}
+
+extract_expression_DF <- function(lumibatch_object) {
+  gene<- t(exprs(lumibatch_object))
+  probenames<-lumibatch_object@featureData@data
+  colnames(gene) <- probenames$TargetID
+  #remove duplicates
+  gene_small <- gene[, !duplicated(colnames(gene))]
+  t(gene_small)   
+}
+
+
+pheno_data_clean_fun <- function(translate_input,CHIP_IDs,pheno_med_input) {
+  temp_df<-translate_input[translate_input$CHIP_ID%in%CHIP_IDs,c("BARCODE","CHIP_ID")]
+  colnames(temp_df)<-c("SampleID","CHIP_ID")
+  inner_join(temp_df,pheno_med_input,by="SampleID")
+ }
+
+
+#### Anova functions
+#Change column names and make new dataframe
+prep_gx_df_for_anova_fun <- function(input_df) {
+  probelist<-colnames(input_df)[-c(1:2)]
+  tempIds<-paste("IndexID",1:length(probelist),sep="")
+  colnames(input_df)<-c("CHIP_ID","Medication",tempIds)
+  input_df
+  print("InputDFcomplete")
+  probeoutput<-prep_empty_df_for_anova_fun(probelist=probelist)
+  print("Empty_df_complete")
+  anova_loop_all_Probes_fun(GX_df=input_df,Med_col="Medication",probelist=probelist,tempIds=tempIds,probeoutput=probeoutput)  
+}
+
+#create empty dataframe
+prep_empty_df_for_anova_fun <- function(probelist) {
+  probeoutput<-data.frame(probelist)
+  newcolnames<- c("Df1","Df2","Sum Sq1","Sum_Sq2","Mean_Sq1","Mean_Sq2","F_value1","F_value2","Prf1","Prf2","probe_check")
+  probeoutput[,newcolnames]<-"EMPTY"
+  probeoutput<-probeoutput[,-1]
+  rownames(probeoutput)<-probelist
+  probeoutput
+}
+
+#Anova loop function
+anova_loop_all_Probes_fun <- function(GX_df,Med_col,probelist,tempIds,probeoutput) {
+    for(x in 1:length(probelist)){
+      model.aov <- aov(as.formula(paste(tempIds[x], "~", Med_col,sep=" ")), data = GX_df) 
+      pval<-unlist(summary(model.aov))
+      probeoutput[x,1:10]<-pval
+      probeoutput[x,11]<-probelist[x]
+    }
+  probeoutput
+}
+
+
+#Anova results find significant values
+anova_sig_fun <- function(input) {
+  input[,c(9,11)]%>%
+    mutate(Adj.P.val = p.adjust(Prf1,method ="fdr"))  %>%
+    filter(Prf1 < 0.05)%>%
+    arrange(Prf1)
+}
+
+
+```
+
+
+
+#Directories
+```{r Define directories}
+
+data_dir <-"./P0_Characterise/output/"
+P1_output_dir <-"./P1_Diff_Ex/output/"
+P4_output_dir <-"./P4_Posthoc/output/"
+P4_figs_dir <-"./P4_Posthoc/figs/"
+
+```
+
+#Load Data
+```{r Load data}
+load(paste(data_dir,"GAP_FEP_eset_linear_adj_Data.RData",sep=""))
+
+```
+
+
+
+
+## Limma
+```{r LIMMA}
+
+
+GX_lumi_object_init<-eset_linear_adj
+#Prepare covariates
+Phenodat<-pData(GX_lumi_object_init)
+
+Phenodat<-Phenodat %>%
+  mutate(Medication=replace(Medication, Medication=="Antipsychotic free", "Antipsychotic_free"))
+
+#Hack to get names in order. Not recommended
+Meds<-levels(as.factor(Phenodat$Medication))
+
+## Hirachy == 0_MED,1_Ris,2_Ola 3_AF,4_Con
+Phenodat<-Phenodat%>% mutate(
+  AF_vs_Con=ifelse(Medication == Meds[2],"3_AF",
+            ifelse(Medication == Meds[4],"4_Con",NA)),
+  Ris_vs_Con=ifelse(Medication == Meds[8],"1_Ris",
+            ifelse(Medication == Meds[4],"4_Con",NA)),
+  Ola_vs_Con=ifelse(Medication == Meds[6],"2_Ola",
+            ifelse(Medication == Meds[4],"4_Con",NA)),
+  Ris_vs_AF=ifelse(Medication == Meds[8],"1_Ris",
+            ifelse(Medication == Meds[2],"3_AF",NA)),
+  Ola_vs_AF=ifelse(Medication == Meds[6],"2_Ola",
+            ifelse(Medication == Meds[2],"3_AF",NA)),
+  Ris_vs_Ola=ifelse(Medication == Meds[8],"1_Ris",
+            ifelse(Medication == Meds[6],"2_Ola",NA)),
+  Med_vs_AF=ifelse(Medication == Meds[4],NA,
+            ifelse(Medication == Meds[2],"3_AF","0_MED")),
+  Med_vs_Con=ifelse(Medication == Meds[2],NA,
+            ifelse(Medication == Meds[4],"4_Con","0_MED")),
+  Med_vs_AF_Con=ifelse(Medication == Meds[2],"AF_Con",
+            ifelse(Medication == Meds[4],"AF_Con","0_MED"))
+)
+
+
+
+test_categories = c("AF_vs_Con","Ris_vs_Con","Ola_vs_Con","Ris_vs_AF","Ola_vs_AF","Ris_vs_Ola","Med_vs_AF","Med_vs_Con","Med_vs_AF_Con")
+
+
+for (testnum in test_categories[1:9]){  
+  
+test_cat<-testnum
+#subset to columns without na
+Phenodat_no_NA<-Phenodat[ifelse(is.na(Phenodat[,test_cat]), F, T),]
+#Make lumibatchobject
+GX_lumi_object<-eset_linear_adj
+#Exprs data
+GX_exprs<-exprs(GX_lumi_object)
+#back into lumibatch
+exprs(GX_lumi_object)<-GX_exprs[,Phenodat_no_NA$sampleID]
+print(paste(testnum,"Lumibatch done",sep=" "))
+#Phenodata into lumi
+pData(GX_lumi_object)<-Phenodat_no_NA
+
+Med <- factor(Phenodat_no_NA[,test_cat])
+
+
+#Design Matrix
+design = model.matrix(~0+Med)   
+
+
+
+## Limma lmFit
+fit <- lmFit(GX_lumi_object, design)
+
+## Limma makeContrasts 
+contrasts <- makeContrasts(paste(colnames(design)[1],"-",colnames(design)[2],sep=""), levels=design)
+
+## Limma eBayes on makeContrasts
+contrast.fit <- contrasts.fit(fit, contrasts)
+contrast.fit <- eBayes(contrast.fit)
+
+# Limma topTable
+top_de_genes <- topTable(contrast.fit, coef=1, number=5000,adjust.method="fdr",p.value=1,confint=TRUE)
+
+
+# tidy up
+top_de_genes$logFC <- round(top_de_genes$logFC,2)
+top_de_genes$CI.L <- round(top_de_genes$CI.L,2)
+top_de_genes$CI.R <- round(top_de_genes$CI.R,2)
+top_de_genes$AveExpr <- round(top_de_genes$AveExpr,2)
+top_de_genes$t <- round(top_de_genes$t,2)
+top_de_genes$P.Value <- signif(top_de_genes$P.Value,3)
+top_de_genes$adj.P.Val <- signif(top_de_genes$adj.P.Val,3)
+top_de_genes$B <- round(top_de_genes$B,2)
+
+write.table(top_de_genes, file=paste(P4_output_dir,"Limma_",testnum,"_Medication_test_full.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+print(paste(testnum,"write to file done",sep=" "))
+
+de_res <- top_de_genes
+table(de_res$SIG_DE)
+de_res <- de_res %>% 
+  mutate(SIG_DE=adj.P.Val <=0.05, 
+         LogFC_DIRECTION=ifelse(logFC >= 0, "up-regulated",
+                          ifelse(logFC < 0, "down-regulated", "no-change")),
+         LogFC_BIOLOCICAL=ifelse(logFC >= 0.1, "up-regulated",
+                         ifelse(logFC <= -0.1, "down-regulated", "no-sig-change")),
+         PROBE_KEEP=ifelse( grepl("^LOC",TargetID),"DROP",
+                       ifelse( grepl("^HS\\.",TargetID), "DROP","KEEP"))
+         ) %>% mutate(Sig_LogFC_probes = ifelse(SIG_DE==TRUE & LogFC_BIOLOCICAL != "no-sig-change","Diffexprs","BACKGROUND"))
+
+
+datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
+
+
+write.table(top_de_genes, file=paste(P4_output_dir,"Limma_",testnum,"_Medication_test_filtered_cleaned.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+print(paste(testnum,"write to file done",sep=" "))
+
+
+##should probably add another table containing up and down regulated probes for each file
+
+filename <- paste("Volcanoplot",testnum,sep="")
+titlename <- paste("Volcanoplot of",testnum,sep=" ")
+jpeg(file = paste(P4_figs_dir,filename,".jpeg",sep=""), pointsize = 20, width = 1500, height = 1300)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main=paste(titlename,"Differentially Expressed Probes",sep=" "), xlim=c(-1.5,1.5)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+# Label points with the textxy function from the calibrate plot
+with(datatoplot [c(1:30),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+dev.off()
+
+pdf(paste(P4_figs_dir,filename,".pdf",sep=""), width = 15, height = 15,pointsize=10)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main=paste(titlename,"Differentially Expressed Probes",sep=" "), xlim=c(-1.5,1.5)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+
+# Label points with the textxy function from the calibrate plot
+with(datatoplot [c(1:30),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+dev.off()
+print(paste(testnum,"Volcanoplots done",sep=" "))
+
+##Chromosome mapping
+CMtitle = paste("LogFC by Chromosome for", testnum,sep=" ")
+ggplot(data = datatoplot, 
+      aes(x = CHROMOSOME, y=logFC, color=CHROMOSOME)) +
+      geom_boxplot(alpha = 0)+
+      geom_text(data=filter(datatoplot, logFC >= 0.3 |logFC <= -0.3),check_overlap = TRUE,angle=45,
+            aes(CHROMOSOME,logFC,label=SYMBOL))+
+      ggtitle(CMtitle)
+ggsave(paste(P4_figs_dir,CMtitle,".png",sep=""))
+print(paste(testnum,"Chromosome plot done",sep=" "))
+}
+
+```
+
+#Prepare data
+```{r prep data}
+
+
+#get gene expression dataframe
+Gene_DF<-extract_expression_DF(eset_linear_adj)
+#Get ChipIDs into med_data
+Med_data_clean<-pData(eset_linear_adj)
+
+#Define categories
+Med_data_clean<-Med_data_clean[Reduce('|', lapply(Med_data_clean, '%in%', c("Antipsychotic free","Risperidone","Olanzapine"))),]
+
+
+exprs_med<-merge(Med_data_clean[,c("sampleID","Medication")],t(Gene_DF),by="row.names")
+#exprs_med$Medication<-as.numeric(exprs_med$Medication)
+row.names(exprs_med)<-exprs_med$sampleID
+exprs_med<-exprs_med[,-c(1:2)]
+exprs_med[1:10,1:10]
+
+
+
+
+
+#exprs_med$Medication<-droplevels(exprs_med$Medication)
+
+#ANOVA
+
+#probelist<-rownames(Gene_DF)
+#Normal Distribute?
+#plot(density(exprs_med$NRGN));
+#qqnorm(exprs_med$NRGN);qqline(exprs_med$NRGN, col = 2)
+exprs_med[1:10,]
+test<-prep_gx_df_for_anova_fun(exprs_med[,1:50])
+str(test)
+
+
+#3 groups olanzapine risperidone antipsychotic free
+ola_ris_AF_groups<-prep_gx_df_for_anova_fun(exprs_med)
+ola_ris_AF<-anova_sig_fun(ola_ris_AF_groups)
+
+str(ola_ris_AF)
+
+
+
+#antipsychotic free vs risperidone and olanzapine as a group
+exprs_med2<-exprs_med
+Med_free<-exprs_med$Medication == "Antipsychotic free"
+Med_free<-replace(Med_free, Med_free,"No_Med")
+exprs_med2$Medication<-replace(Med_free, Med_free == "FALSE","Medication")
+
+
+Med_yes_no_groups<-prep_gx_df_for_anova_fun(exprs_med2)
+Med_yes_no<-anova_sig_fun(Med_yes_no_groups)
+
+dim(Med_yes_no)
+
+dim(filter(Med_yes_no,Adj.P.val <= 0.05))
+
+
+
+#antipsychotic free vs risperidone 
+exprs_med2<-exprs_med
+exprs_AF_vs_RIS<-exprs_med2[!exprs_med2$Medication =="Olanzapine",]
+AF_vs_RIS<-prep_gx_df_for_anova_fun(exprs_AF_vs_RIS)
+AF_vs_RIS_stats<-anova_sig_fun(AF_vs_RIS)
+AF_vs_RIS_stats
+
+
+#antipsychotic free vs Olanzapine
+exprs_med2<-exprs_med
+exprs_AF_vs_ola<-exprs_med2[!exprs_med2$Medication =="Risperidone",]
+AF_vs_ola<-prep_gx_df_for_anova_fun(exprs_AF_vs_ola)
+AF_vs_ola_stats<-anova_sig_fun(AF_vs_ola)
+AF_vs_ola_stats
+
+
+#Risperidone vs Olanzapine
+exprs_ris_vs_ola<-exprs_med2[!exprs_med2$Medication =="Antipsychotic free",]
+ris_vs_ola<-prep_gx_df_for_anova_fun(exprs_ris_vs_ola)
+ris_vs_ola_stats<-anova_sig_fun(ris_vs_ola)
+ris_vs_ola_stats
+
+
+names<-c("ola_ris_AF","Med_yes_no","ris_vs_ola_stats","AF_vs_ola_stats","AF_vs_RIS_stats")
+result_list<-list(ola_ris_AF,Med_yes_no,ris_vs_ola_stats,AF_vs_ola_stats,AF_vs_RIS_stats)
+names[2]
+
+
+#write to file
+for(i in 1:5){
+  write.csv(result_list[i],file=paste(output_dir,names[i],".csv",sep=""))
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
