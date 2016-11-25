@@ -252,7 +252,10 @@ moduleLabels = match(moduleColors, colorOrder)-1;
 MEs = mergedMEs;
 
 
-
+setwd(topdir)
+setwd(P2_output_dir)
+write.csv(table(moduleColors), file = "Table_merged_modules.csv")
+setwd(topdir)
 
 ```
 
@@ -279,7 +282,7 @@ moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
 ```{r}
 
-
+setwd(P2_figs_dir)
 jpeg(file="Module_Trait_Relationships.jpeg",width=1000,height=900,pointsize = 20)
 # Will display correlations and their p-values
 textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
