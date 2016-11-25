@@ -3,12 +3,12 @@ title: "README_diff_expression_Project"
 author: "DJL"
 date: "15/09/2016"
 output:
+  word_document: default
   pdf_document:
     toc: yes
   html_document:
     toc: yes
     toc_float: yes
-  word_document: default
 ---
 
 #Project Overview

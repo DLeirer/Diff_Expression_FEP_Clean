@@ -77,14 +77,17 @@ for(listname in lists){
 ## User List Enrichement for Diffferentially expressed genes
 ```{r gene_list}
 #load background data
-all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
+
+all_probes_file<-"Datatoplot.tsv"
+#all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
 all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header=TRUE)
 
 
+table(all_probes$Sig_LogFC_probes)
 #Subset to pvalue 0.05
-all_probes$Groups <-all_probes$adj.P.Val <= 0.05
-all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
-all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
+#all_probes$Groups <-all_probes$adj.P.Val <= 0.05
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Sig_LogFC_probes=="BACKGROUND", "background")
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Sig_LogFC_probes=="Diffexprs", "FDR_Pass")
 setwd(top_dir)
 setwd(P3_output_dir)
 enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GAP_reduced_GO_Biological_Process_2015.csv","GAP_reduced_GO_Cellular_Component_2015.csv","GAP_reduced_GO_Molecular_Function_2015.csv","GAP_reduced_Kegg2016.csv"),catNmIn=c("GO_BP","GO_CC","GO_MF","KEGG_2016"))
