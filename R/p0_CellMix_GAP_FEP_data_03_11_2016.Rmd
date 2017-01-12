@@ -12,8 +12,8 @@ output:
 ##Install and load Libraries:
 ```{r Libraries, message=FALSE,warning=FALSE}
 
-#source("http://bioconductor.org/biocLite.R")
-#biocLite('CellMix', siteRepos = 'http://web.cbio.uct.ac.za/~renaud/CRAN')
+source("http://bioconductor.org/biocLite.R")
+biocLite('CellMix', siteRepos = 'http://web.cbio.uct.ac.za/~renaud/CRAN')
 
 library(CellMix)
 library(lumi)
@@ -21,6 +21,7 @@ library(reshape)
 library(plyr)
 library(dplyr)
 library(ggplot2)
+
 
 ```
 

@@ -30,6 +30,8 @@ datadir <- "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2
 workingDir = "~/Documents/A_Year_1_PhD/GAP_Data/Diff_Expression_paper_Full_24_02_2016/WGCNA/WGCNA_Results"
 setwd(workingDir)
 
+
+
 # Load the package
 library(WGCNA);
 library(flashClust)
