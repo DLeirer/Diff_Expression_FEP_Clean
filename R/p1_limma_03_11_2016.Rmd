@@ -249,7 +249,11 @@ with(subset(datatoplot, logFC >= 0.38 & adj.P.Val <0.05 ), textxy(logFC, -log10(
 dev.off()
 
 
+chrom8=filter(top_de_genes,CHROMOSOME == "8")
+arrange(chrom8, PROBE_COORDINATES)[,c(2,10:16)]
+head(top_de_genes)
 
+str(top_de_genes)
 #LogFC by chromosome
 title = "LogFC by Chromosome"
 ggplot(data = datatoplot, 
