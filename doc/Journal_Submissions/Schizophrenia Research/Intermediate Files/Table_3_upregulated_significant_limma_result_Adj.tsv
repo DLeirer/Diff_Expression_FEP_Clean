@@ -1,0 +1,51 @@
+TargetID	CHROMOSOME	DEFINITION	logFC	adj.P.Val
+SUMO3	21	Homo sapiens SMT3 suppressor of mif two 3 homolog 3 (S. cerevisiae) (SUMO3), mRNA.	0.1	7.4e-05
+CAMP	3	Homo sapiens cathelicidin antimicrobial peptide (CAMP), mRNA.	0.63	7.4e-05
+DEFA1B	8	Homo sapiens defensin, alpha 1B (DEFA1B), mRNA.	0.91	0.00021
+DEFA1	8	Homo sapiens defensin, alpha 1 (DEFA1), mRNA.	0.82	0.00021
+DEFA3	8	Homo sapiens defensin, alpha 3, neutrophil-specific (DEFA3), mRNA.	0.9	0.00021
+IDH1	2	Homo sapiens isocitrate dehydrogenase 1 (NADP+), soluble (IDH1), mRNA.	0.13	0.00021
+TMEM170B	6	Homo sapiens transmembrane protein 170B (TMEM170B), mRNA.	0.29	0.00021
+LDHA	11	Homo sapiens lactate dehydrogenase A (LDHA), transcript variant 2, mRNA.	0.1	0.00024
+LCN2	9	Homo sapiens lipocalin 2 (LCN2), mRNA.	0.58	0.00024
+C9ORF72	9	Homo sapiens chromosome 9 open reading frame 72 (C9orf72), transcript variant 1, mRNA.	0.23	0.00028
+LYPLAL1	1	Homo sapiens lysophospholipase-like 1 (LYPLAL1), mRNA.	0.17	0.00028
+TFRC	3	Homo sapiens transferrin receptor (p90, CD71) (TFRC), mRNA.	0.17	0.00028
+S100A8	1	Homo sapiens S100 calcium binding protein A8 (S100A8), mRNA.	0.35	0.00028
+PCMT1	6	Homo sapiens protein-L-isoaspartate (D-aspartate) O-methyltransferase (PCMT1), mRNA.	0.13	0.00028
+BNIP2	15	Homo sapiens BCL2/adenovirus E1B 19kDa interacting protein 2 (BNIP2), mRNA.	0.17	0.00031
+SLC30A9	4	Homo sapiens solute carrier family 30 (zinc transporter), member 9 (SLC30A9), mRNA.	0.17	0.00031
+SLC44A1	9	Homo sapiens solute carrier family 44, member 1 (SLC44A1), mRNA.	0.17	0.00035
+TCEB1	8	Homo sapiens transcription elongation factor B (SIII), polypeptide 1 (15kDa, elongin C) (TCEB1), mRNA.	0.13	0.00036
+VAMP7	XY	Homo sapiens vesicle-associated membrane protein 7 (VAMP7), mRNA.	0.14	0.00036
+GLRX	5	Homo sapiens glutaredoxin (thioltransferase) (GLRX), mRNA.	0.22	0.00037
+CLNS1A	11	Homo sapiens chloride channel, nucleotide-sensitive, 1A (CLNS1A), mRNA.	0.17	0.00037
+FAM96A	15	Homo sapiens family with sequence similarity 96, member A (FAM96A), transcript variant 1, mRNA.	0.23	0.00037
+H2AFZ	4	Homo sapiens H2A histone family, member Z (H2AFZ), mRNA.	0.1	0.00037
+SENP7	3	Homo sapiens SUMO1/sentrin specific peptidase 7 (SENP7), transcript variant 2, mRNA.	0.25	0.00037
+COX7A2L	2	Homo sapiens cytochrome c oxidase subunit VIIa polypeptide 2 like (COX7A2L), nuclear gene encoding mitochondrial protein, mRNA.	0.18	0.00037
+C14ORF100	14	Homo sapiens chromosome 14 open reading frame 100 (C14orf100), mRNA.	0.14	0.00037
+TAF7	5	Homo sapiens TAF7 RNA polymerase II, TATA box binding protein (TBP)-associated factor, 55kDa (TAF7), mRNA.	0.19	0.00037
+PSMC2	7	Homo sapiens proteasome (prosome, macropain) 26S subunit, ATPase, 2 (PSMC2), mRNA.	0.14	0.00037
+S100A12	1	Homo sapiens S100 calcium binding protein A12 (S100A12), mRNA.	0.3	0.00037
+MED28	4	Homo sapiens mediator complex subunit 28 (MED28), mRNA.	0.12	0.00038
+ARL6IP5	3	Homo sapiens ADP-ribosylation-like factor 6 interacting protein 5 (ARL6IP5), mRNA.	0.13	0.00039
+IFNGR1	6	Homo sapiens interferon gamma receptor 1 (IFNGR1), mRNA.	0.15	0.00043
+SRP9	1	Homo sapiens signal recognition particle 9kDa (SRP9), mRNA.	0.19	0.00043
+PRDX3	10	Homo sapiens peroxiredoxin 3 (PRDX3), nuclear gene encoding mitochondrial protein, transcript variant 1, mRNA.	0.12	0.00043
+ATG3	3	Homo sapiens ATG3 autophagy related 3 homolog (S. cerevisiae) (ATG3), mRNA.	0.14	0.00044
+CRLS1	20	Homo sapiens cardiolipin synthase 1 (CRLS1), mRNA.	0.2	0.00044
+CCPG1	15	Homo sapiens cell cycle progression 1 (CCPG1), transcript variant 2, mRNA.	0.16	0.00044
+CLDND1	3	Homo sapiens claudin domain containing 1 (CLDND1), transcript variant 1, mRNA.	0.18	0.00044
+ANXA3	4	Homo sapiens annexin A3 (ANXA3), mRNA.	0.34	0.00046
+TM2D1	1	Homo sapiens TM2 domain containing 1 (TM2D1), mRNA.	0.11	0.00047
+MAP2K1IP1	4	Homo sapiens mitogen-activated protein kinase kinase 1 interacting protein 1 (MAP2K1IP1), mRNA.	0.2	0.00047
+COX7A2	6	Homo sapiens cytochrome c oxidase subunit VIIa polypeptide 2 (liver) (COX7A2), mRNA.	0.21	0.00047
+FAM45A	10	Homo sapiens family with sequence similarity 45, member A (FAM45A), mRNA.	0.13	0.00048
+ATP5C1	10	Homo sapiens ATP synthase, H+ transporting, mitochondrial F1 complex, gamma polypeptide 1 (ATP5C1), nuclear gene encoding mitochondrial protein, transcript variant 2, mRNA.	0.23	0.00051
+CDC40	6	Homo sapiens cell division cycle 40 homolog (S. cerevisiae) (CDC40), mRNA.	0.11	0.00052
+VBP1	X	Homo sapiens von Hippel-Lindau binding protein 1 (VBP1), mRNA.	0.21	0.00052
+PHF5A	22	Homo sapiens PHD finger protein 5A (PHF5A), mRNA.	0.19	0.00053
+GNG10	9	Homo sapiens guanine nucleotide binding protein (G protein), gamma 10 (GNG10), mRNA.	0.3	0.00053
+PSMD10	X	Homo sapiens proteasome (prosome, macropain) 26S subunit, non-ATPase, 10 (PSMD10), transcript variant 1, mRNA.	0.15	0.00053
+HEXB	5	Homo sapiens hexosaminidase B (beta polypeptide) (HEXB), mRNA.	0.1	0.00053

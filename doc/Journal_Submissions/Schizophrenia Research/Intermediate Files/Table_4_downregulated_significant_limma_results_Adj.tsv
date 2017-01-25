@@ -1,0 +1,51 @@
+TargetID	CHROMOSOME	DEFINITION	logFC	adj.P.Val
+HNRNPUL2	11	"Homo sapiens heterogeneous nuclear ribonucleoprotein U-like 2 (HNRNPUL2), mRNA."	-0.18	0.00021
+RBM14	11	"Homo sapiens RNA binding motif protein 14 (RBM14), mRNA."	-0.12	0.00021
+TMEM69	1	"Homo sapiens transmembrane protein 69 (TMEM69), mRNA."	-0.11	0.00028
+SCAP	3	"Homo sapiens SREBF chaperone (SCAP), mRNA."	-0.13	0.00037
+FAM110A	20	"Homo sapiens family with sequence similarity 110, member A (FAM110A), transcript variant 3, mRNA."	-0.15	0.00037
+RBM10	X	"Homo sapiens RNA binding motif protein 10 (RBM10), transcript variant 2, mRNA."	-0.11	0.00037
+ZNF296	19	"Homo sapiens zinc finger protein 296 (ZNF296), mRNA."	-0.15	4.00E-04
+PNPT1	2	"Homo sapiens polyribonucleotide nucleotidyltransferase 1 (PNPT1), mRNA."	-0.11	0.00043
+RASGRP2	11	"Homo sapiens RAS guanyl releasing protein 2 (calcium and DAG-regulated) (RASGRP2), transcript variant 1, mRNA."	-0.11	0.00043
+DENND4B	1	"Homo sapiens DENN/MADD domain containing 4B (DENND4B), mRNA."	-0.11	0.00044
+ZC3H5		"PREDICTED: Homo sapiens zinc finger CCCH-type containing 5 (ZC3H5), mRNA."	-0.1	0.00047
+CXXC1	18	"Homo sapiens CXXC finger 1 (PHD domain) (CXXC1), mRNA."	-0.11	0.00047
+SUPT5H	19	"Homo sapiens suppressor of Ty 5 homolog (S. cerevisiae) (SUPT5H), mRNA."	-0.13	0.00048
+GANAB	11	"Homo sapiens glucosidase, alpha; neutral AB (GANAB), transcript variant 2, mRNA."	-0.11	0.00052
+PHF15	5	"Homo sapiens PHD finger protein 15 (PHF15), mRNA."	-0.13	0.00053
+KIAA1267	17	"Homo sapiens KIAA1267 (KIAA1267), mRNA."	-0.1	0.00053
+CLSTN1	1	"Homo sapiens calsyntenin 1 (CLSTN1), transcript variant 1, mRNA."	-0.15	0.00053
+POM121C	7	"Homo sapiens POM121 membrane glycoprotein C (POM121C), mRNA."	-0.12	0.00053
+TSSC4	11	"Homo sapiens tumor suppressing subtransferable candidate 4 (TSSC4), mRNA."	-0.1	0.00053
+UBQLN4	1	"Homo sapiens ubiquilin 4 (UBQLN4), mRNA."	-0.11	0.00053
+RANGAP1	22	"Homo sapiens Ran GTPase activating protein 1 (RANGAP1), mRNA."	-0.12	0.00053
+OSBPL7	17	"Homo sapiens oxysterol binding protein-like 7 (OSBPL7), transcript variant 1, mRNA."	-0.13	0.00053
+WDR23	14	"Homo sapiens WD repeat domain 23 (WDR23), transcript variant 1, mRNA."	-0.11	0.00056
+FBXO46	19	"PREDICTED: Homo sapiens F-box protein 46, transcript variant 5 (FBXO46), mRNA."	-0.16	0.00056
+PRKD2	19	"Homo sapiens protein kinase D2 (PRKD2), mRNA."	-0.14	0.00056
+VAMP2	17	"Homo sapiens vesicle-associated membrane protein 2 (synaptobrevin 2) (VAMP2), mRNA."	-0.11	0.00058
+NUMA1	11	"Homo sapiens nuclear mitotic apparatus protein 1 (NUMA1), mRNA."	-0.12	0.00058
+ST3GAL1	8	"Homo sapiens ST3 beta-galactoside alpha-2,3-sialyltransferase 1 (ST3GAL1), transcript variant 1, mRNA."	-0.13	0.00059
+EDC4	16	"Homo sapiens enhancer of mRNA decapping 4 (EDC4), mRNA."	-0.1	0.00059
+SIK3	11	"Homo sapiens SIK family kinase 3 (SIK3), mRNA."	-0.11	0.00065
+CD97	19	"Homo sapiens CD97 molecule (CD97), transcript variant 1, mRNA."	-0.16	0.00066
+TLN1	9	"Homo sapiens talin 1 (TLN1), mRNA."	-0.2	0.00068
+STIP1	11	"Homo sapiens stress-induced-phosphoprotein 1 (Hsp70/Hsp90-organizing protein) (STIP1), mRNA."	-0.13	0.00068
+ITPKB	1	"Homo sapiens inositol 1,4,5-trisphosphate 3-kinase B (ITPKB), mRNA."	-0.12	0.00069
+RAB35	12	"Homo sapiens RAB35, member RAS oncogene family (RAB35), mRNA."	-0.1	7.00E-04
+RAB11FIP1	8	"Homo sapiens RAB11 family interacting protein 1 (class I) (RAB11FIP1), transcript variant 3, mRNA."	-0.13	7.00E-04
+RASAL3	19	"Homo sapiens RAS protein activator like 3 (RASAL3), mRNA."	-0.11	7.00E-04
+WASF2	1	"Homo sapiens WAS protein family, member 2 (WASF2), mRNA."	-0.17	7.00E-04
+PHRF1	11	"Homo sapiens PHD and ring finger domains 1 (PHRF1), mRNA."	-0.11	7.00E-04
+ICAM2	17	"Homo sapiens intercellular adhesion molecule 2 (ICAM2), transcript variant 1, mRNA."	-0.1	0.00073
+HGS	17	"Homo sapiens hepatocyte growth factor-regulated tyrosine kinase substrate (HGS), mRNA."	-0.1	0.00073
+MEF2D	1	"Homo sapiens myocyte enhancer factor 2D (MEF2D), mRNA."	-0.11	0.00073
+SPG7	16	"Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), nuclear gene encoding mitochondrial protein, transcript variant 1, mRNA."	-0.1	0.00076
+XRCC6	22	"Homo sapiens X-ray repair complementing defective repair in Chinese hamster cells 6 (XRCC6), mRNA."	-0.12	0.00077
+FYN	6	"Homo sapiens FYN oncogene related to SRC, FGR, YES (FYN), transcript variant 2, mRNA."	-0.1	0.00078
+PDPR		"PREDICTED: Homo sapiens pyruvate dehydrogenase phosphatase regulatory subunit (PDPR), mRNA."	-0.2	0.00078
+TRIM28	19	"Homo sapiens tripartite motif-containing 28 (TRIM28), mRNA."	-0.13	0.00081
+AKAP13	15	"Homo sapiens A kinase (PRKA) anchor protein 13 (AKAP13), transcript variant 2, mRNA."	-0.11	0.00084
+AP1G2	14	"Homo sapiens adaptor-related protein complex 1, gamma 2 subunit (AP1G2), mRNA."	-0.1	0.00084
+MED25	19	"Homo sapiens mediator complex subunit 25 (MED25), mRNA."	-0.2	0.00084
