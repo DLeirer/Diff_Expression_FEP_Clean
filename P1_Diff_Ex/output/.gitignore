@@ -10,4 +10,9 @@ small_limma_results_AgeSexEthnicity_Adj.tsv
 small_limma_results_AgeSexEthnicity_Adj.tsv
 full_limma_results_AgeSexEthnicity_Adj.tsv
 small_limma_results_AgeSexEthnicity_Adj.tsv
+<<<<<<< HEAD
  full_limma_results_AgeSexEthnicity_Adj.tsv
+=======
+full_limma_results_AgeSexEthnicity_Adj.tsv
+Datatoplot.tsv
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2

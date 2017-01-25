@@ -28,7 +28,10 @@ P2_figs_dir <-"./P2_WGCNA/figs/"
 
 ##Load data and Settings
 ```{r data and settings}
+<<<<<<< HEAD
 
+=======
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE);
@@ -252,7 +255,10 @@ moduleLabels = match(moduleColors, colorOrder)-1;
 MEs = mergedMEs;
 
 
-
+setwd(topdir)
+setwd(P2_output_dir)
+write.csv(table(moduleColors), file = "Table_merged_modules.csv")
+setwd(topdir)
 
 ```
 
@@ -279,7 +285,11 @@ moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
 ```{r}
 
+<<<<<<< HEAD
 
+=======
+setwd(P2_figs_dir)
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 jpeg(file="Module_Trait_Relationships.jpeg",width=1000,height=900,pointsize = 20)
 # Will display correlations and their p-values
 textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
@@ -324,7 +334,96 @@ names(datTraits)
 datTraits[,c(1,5,6,8:11)]
 moduleTraitCor = cor(MEs, datTraits[,c(1,5,8:11)], use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+<<<<<<< HEAD
+=======
 
+
+jpeg(file="Module_Trait_Relationships_reduced.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_reduced.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+
+names(datTraits)
+datTraits[,c(1,18:24,8:11,5,6)]
+moduleTraitCor = cor(MEs, datTraits[,c(1,18:24,8:11,5,6)], use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+
+
+jpeg(file="Module_Trait_Relationships_med.jpeg",width=1000,height=900,pointsize = 20)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
+
+pdf("Supplementary_Figure_2_Module_Trait_Relationships_med.pdf")
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+par(mar = c(6, 8.5, 3, 3));
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+xLabels = colnames(moduleTraitCor),
+yLabels = names(MEs),
+ySymbols = names(MEs),
+colorLabels = FALSE,
+colors = blueWhiteRed(50),
+textMatrix = textMatrix,
+setStdMargins = FALSE,
+cex.text = 0.5,
+zlim = c(-1,1),
+main = paste("Module-trait relationships"))
+dev.off()
 
 jpeg(file="Module_Trait_Relationships_reduced.jpeg",width=1000,height=900,pointsize = 20)
 # Will display correlations and their p-values

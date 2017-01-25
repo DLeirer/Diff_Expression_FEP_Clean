@@ -12,12 +12,17 @@ output:
 ##Install and load Libraries:
 ```{r Libraries, message=FALSE,warning=FALSE}
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 library(CellMix)
 library(lumi)
 library(reshape)
 library(plyr)
 library(dplyr)
 library(ggplot2)
+
 
 ```
 

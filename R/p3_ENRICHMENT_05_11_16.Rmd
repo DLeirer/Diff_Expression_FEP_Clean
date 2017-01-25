@@ -15,6 +15,10 @@ library(WGCNA)
 library(flashClust)
 library(data.table)
 library(dplyr)
+<<<<<<< HEAD
+=======
+library(tidyr)
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 
 #directories
 top_dir <-getwd()
@@ -51,6 +55,22 @@ smaller_enrichmentlists<-function(enrichmentlist,Background,overlap){
     return(enrichmentlist[enrichmentlist$Eclass%in%smalllist,1:2])
 }
 
+<<<<<<< HEAD
+=======
+
+##Function for adding column with list type. Only works with data input I create myself. Userlistenrichment internal lists probably wont work. 
+New_Types_danlists<-function(Data){
+  splitD<-strsplit(Data$UserDefinedCategories,"__")
+  new_Category<-unlist(lapply(splitD, `[[`, 1))
+  new_Type<-unlist(lapply(splitD, `[[`, 2))
+  Data$UserDefinedCategories<-new_Category
+  Data$Type<-new_Type
+  return(Data)
+}
+
+
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 ```
 
 
@@ -77,6 +97,7 @@ for(listname in lists){
 ## User List Enrichement for Diffferentially expressed genes
 ```{r gene_list}
 #load background data
+<<<<<<< HEAD
 all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
 all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header=TRUE)
 
@@ -85,6 +106,19 @@ all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header
 all_probes$Groups <-all_probes$adj.P.Val <= 0.05
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==FALSE, "background")
 all_probes$Groups<-replace(all_probes$Groups, all_probes$Groups==TRUE, "FDR_Pass")
+=======
+
+all_probes_file<-"Datatoplot.tsv"
+#all_probes_file<-"Supplementary_Table_1_all_probes_5797_limma_results_AgeSexEthnicity_Adj.tsv"
+all_probes<-read.csv(paste(P1_output_dir,all_probes_file,sep=""),sep="\t",header=TRUE)
+
+
+table(all_probes$Sig_LogFC_probes)
+#Subset to pvalue 0.05
+#all_probes$Groups <-all_probes$adj.P.Val <= 0.05
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Sig_LogFC_probes=="BACKGROUND", "background")
+all_probes$Groups<-replace(all_probes$Groups, all_probes$Sig_LogFC_probes=="Diffexprs", "FDR_Pass")
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 setwd(top_dir)
 setwd(P3_output_dir)
 enrichments = userListEnrichment(all_probes$TargetID,all_probes$Groups,fnIn=c("GAP_reduced_GO_Biological_Process_2015.csv","GAP_reduced_GO_Cellular_Component_2015.csv","GAP_reduced_GO_Molecular_Function_2015.csv","GAP_reduced_Kegg2016.csv"),catNmIn=c("GO_BP","GO_CC","GO_MF","KEGG_2016"))
@@ -180,6 +214,10 @@ enpv_mm<-enrichments_modules$pValue
 enrichment_probes_modules<-unlist(lapply(enrichments_modules$ovGenes,paste, collapse =";"))
 enpv_mm$Genes<-enrichment_probes_modules
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 ##order by module and pvalue.
 enpv_mm<-enpv_mm[order(enpv_mm$InputCategories,enpv_mm$Pvalues),]
 
@@ -188,7 +226,11 @@ enpv_mmDT<-data.table(enpv_mm)
 ##Select top 20, add pvalue < 0.05
 enpv_mmDT<-enpv_mmDT[Pvalues < 0.05 & NumOverlap > 5,.SD[1:20],by=InputCategories]
 #enpv_mmDT<-enpv_mmDT[,.SD[1:20],by=InputCategories]
+<<<<<<< HEAD
 str(enpv_mmDT)
+=======
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 
 enpv_mmDF<-as.data.frame(enpv_mmDT)
 enpv_mmDF<-enpv_mmDF[complete.cases(enpv_mmDF),]
@@ -200,5 +242,63 @@ setwd(top_dir)
 setwd(P3_output_dir)
 write.csv(enpv_mmDF,file="Supplementary_Table_12_User_list_enrichment_WGCNA_results.csv",row.names=F)
 setwd(top_dir)
+<<<<<<< HEAD
+=======
+
+
+enpv_mmDF_type<-New_Types_danlists(enpv_mmDF)
+getwd()
+setwd(top_dir)
+setwd(P3_output_dir)
+write.csv(enpv_mmDF_type,file="Supplementary_Table_12_User_list_enrichment_WGCNA_results.csv",row.names=F)
+setwd(top_dir)
+
+
+
+
+##add genes to data.frame.
+enpv_mm<-enrichments_modules$pValue
+enrichment_probes_modules<-unlist(lapply(enrichments_modules$ovGenes,paste, collapse =";"))
+enpv_mm$Genes<-enrichment_probes_modules
+
+
+##order by module and pvalue.
+enpv_mm<-enpv_mm[order(enpv_mm$InputCategories,enpv_mm$Pvalues),]
+
+enpv_mmf<-enpv_mm%>%filter(CorrectedPvalues <= 0.05)
+enpv_mmf_type<-New_Types_danlists(enpv_mmf)
+
+#Make table for table
+Paper_table_colnames<-c("Module","Library","Enriched Categories")
+Table_paper <- data.frame(matrix(NA,ncol=3))
+names(Table_paper)<-Paper_table_colnames
+rowindex = 1
+#group by color, > group by library >
+for (module in unique(enpv_mmf_type$InputCategories)){
+  modulesub<-filter(enpv_mmf_type,InputCategories==module)
+  for(Type_cat in unique(modulesub$Type)){
+    typesub<-filter(modulesub,Type==Type_cat)
+    Usercategories_temp<-paste(typesub$UserDefinedCategories, sep="", collapse="; ")
+    Category<-cbind(typesub[,c(1,3)],Usercategories_temp) 
+    Table_paper[rowindex,] <-Category
+    rowindex = rowindex + 1
+    }
+  
+}
+
+Table_paper[,1:2]
+
+setwd(top_dir)
+setwd(P3_output_dir)
+write.csv(Table_paper,file="Table_4_User_list_enrichment_WGCNA_results.csv",row.names=F)
+setwd(top_dir)
+
+
+enpv_mmDF_type%>% group_by(InputCategories & Type)
+
+enpv_mmDF_type$UserDefinedCategories
+#collapse categories with seperator.
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 ```
 

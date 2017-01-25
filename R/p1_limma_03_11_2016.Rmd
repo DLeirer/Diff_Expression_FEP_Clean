@@ -140,7 +140,7 @@ write.table(small_limma_results_AgeSexEthnicity_Adj, file=paste(P1_output_dir,"s
 ```{r}
 
 
-de_res <- top_de_genes
+de_res <- top_de_genes[,c("TargetID","logFC","P.Value","adj.P.Val","CHROMOSOME","DEFINITION")]
 
 de_res <- de_res %>% 
   mutate(SIG_DE=adj.P.Val <=0.05, 
@@ -151,18 +151,32 @@ de_res <- de_res %>%
          PROBE_KEEP=ifelse( grepl("^LOC",TargetID),"DROP",
                        ifelse( grepl("^HS\\.",TargetID), "DROP","KEEP"))
          ) %>% mutate(Sig_LogFC_probes = ifelse(SIG_DE==TRUE & LogFC_BIOLOCICAL != "no-sig-change","Diffexprs","BACKGROUND"))
+<<<<<<< HEAD
   
       
+=======
+
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 ## Significantly DE Probes
 datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
+
+write.table(datatoplot, file=paste(P1_output_dir,"Datatoplot.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+
 
 ## Number of probes
 table(datatoplot$PROBE_KEEP)
 
 ## Number of significant probes
+<<<<<<< HEAD
 table(datatoplot$Sig_Logfc_probes)
 
 ## Number if sig probes using B-statistic
+=======
+table(datatoplot$Sig_LogFC_probes)
+
+## Number of sig probes using B-statistic
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 table(datatoplot$B > 1.5)
 
 ##All probes
@@ -173,13 +187,16 @@ datatoplot_sig<-datatoplot[datatoplot$adj.P.Val <= 0.01,]
 dim(datatoplot_sig)
 write.table(datatoplot_sig, file=paste(P1_output_dir,"Supplementary_Table_2_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
+
+
+
 ##upregulated
-datatoplot_sig_up<-datatoplot_sig[datatoplot_sig$logFC > 0,]
+datatoplot_sig_up<-datatoplot_sig[datatoplot_sig$logFC >= 0.1,]
 dim(datatoplot_sig_up)
-write.table(datatoplot_sig_up, file=paste(P1_output_dir,"Supplementary_Table_3_upregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+write.table(filter(datatoplot_sig_up,Sig_LogFC_probes == "Diffexprs"), file=paste(P1_output_dir,"Supplementary_Table_3_upregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
+table1up<-filter(datatoplot_sig_up,Sig_LogFC_probes == "Diffexprs")[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
 
-table1up<-datatoplot_sig_up[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
 
 table1up$logFC<-signif(table1up$logFC,2)
 table1up$adj.P.Val<-signif(table1up$adj.P.Val,2)
@@ -188,11 +205,13 @@ write.table(table1up, file=paste(P1_output_dir,"Table_1_upregulated_significant_
 
 
 ##downregulated
-datatoplot_sig_down<-datatoplot_sig[datatoplot_sig$logFC < 0,]
+datatoplot_sig_down<-datatoplot_sig[datatoplot_sig$logFC <= -0.1,]
 dim(datatoplot_sig_down)
 write.table(datatoplot_sig_down, file=paste(P1_output_dir,"Supplementary_Table_5_downregulated_significant_limma_results_AgeSexEthnicity_Adj.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
 
-table2down<-datatoplot_sig_down[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
+dim(filter(datatoplot_sig_down,Sig_LogFC_probes == "Diffexprs"))
+
+table2down<-filter(datatoplot_sig_down,Sig_LogFC_probes == "Diffexprs")[1:50,c("TargetID","CHROMOSOME","DEFINITION","logFC","adj.P.Val")]
 
 table2down$logFC<-signif(table2down$logFC,2)
 table2down$adj.P.Val<-signif(table2down$adj.P.Val,2)
@@ -241,13 +260,18 @@ with(subset(datatoplot, logFC >= 0.38 & adj.P.Val <0.05 ), textxy(logFC, -log10(
 dev.off()
 
 
+chrom8=filter(top_de_genes,CHROMOSOME == "8")
+arrange(chrom8, PROBE_COORDINATES)[,c(2,10:16)]
+head(top_de_genes)
+
+str(top_de_genes)
 #LogFC by chromosome
 title = "LogFC by Chromosome"
 ggplot(data = datatoplot, 
       aes(x = CHROMOSOME, y=logFC, color=CHROMOSOME)) +
       geom_boxplot(alpha = 0)+
       geom_text(data=filter(datatoplot, logFC >= 0.3 |logFC <= -0.27),check_overlap = TRUE,angle=45,
-            aes(CHROMOSOME,logFC,label=SYMBOL))+
+            aes(CHROMOSOME,logFC,label=TargetID))+
       ggtitle(title)
 ggsave(paste(P1_figs_dir,title,".png",sep=""))
 

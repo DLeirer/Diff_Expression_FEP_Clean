@@ -39,6 +39,10 @@ library(calibrate)
 library(ggplot2)
 library(devtools)
 library(ggbiplot)
+<<<<<<< HEAD
+=======
+library(tableone)
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 
 ```
 
@@ -123,6 +127,11 @@ P4_figs_dir <-"./P4_Posthoc/figs/"
 #Load Data
 ```{r Load data}
 load(paste(data_dir,"GAP_FEP_eset_linear_adj_Data.RData",sep=""))
+<<<<<<< HEAD
+=======
+P1_datatoplot<-read.csv(paste(P1_output_dir,"Datatoplot.tsv",sep=""),sep="\t")
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 
 ```
 
@@ -169,12 +178,28 @@ Phenodat<-Phenodat%>% mutate(
 
 test_categories = c("AF_vs_Con","Ris_vs_Con","Ola_vs_Con","Ris_vs_AF","Ola_vs_AF","Ris_vs_Ola","Med_vs_AF","Med_vs_Con","Med_vs_AF_Con")
 
+<<<<<<< HEAD
 
+=======
+#create on all data
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 for (testnum in test_categories[1:9]){  
   
 test_cat<-testnum
 #subset to columns without na
 Phenodat_no_NA<-Phenodat[ifelse(is.na(Phenodat[,test_cat]), F, T),]
+<<<<<<< HEAD
+=======
+str(Phenodat_no_NA)
+#Demographics
+listVars <- c("Gender","Age", "Ethnicity","BMI","Tobacco")
+catVars <- c("Ethnicity","Tobacco")
+table1 <- CreateTableOne(vars = listVars, data = Phenodat_no_NA, factorVars = catVars,strata=c(test_cat),includeNA = T)
+table1print<-print(table1)
+write.table(table1print, file=paste(P4_output_dir,"Limma_",testnum,"_Demographics.csv",sep=""),row.names=T,quote=FALSE,sep = "\t")
+
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 #Make lumibatchobject
 GX_lumi_object<-eset_linear_adj
 #Exprs data
@@ -235,8 +260,13 @@ de_res <- de_res %>%
 
 datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
 
+<<<<<<< HEAD
 
 write.table(top_de_genes, file=paste(P4_output_dir,"Limma_",testnum,"_Medication_test_filtered_cleaned.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+=======
+names(datatoplot)
+write.table(datatoplot[,c(1:2,36:43,3:35)], file=paste(P4_output_dir,"Limma_",testnum,"_Medication_test_filtered_cleaned.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 print(paste(testnum,"write to file done",sep=" "))
 
 
@@ -280,8 +310,157 @@ ggsave(paste(P4_figs_dir,CMtitle,".png",sep=""))
 print(paste(testnum,"Chromosome plot done",sep=" "))
 }
 
+<<<<<<< HEAD
 ```
 
+=======
+#set up for reduced data
+P1_dp_sig<-filter(P1_datatoplot,Sig_LogFC_probes== "Diffexprs")
+testnum="AF_vs_Con"
+prefix = "reduced_"
+#create on reduced data
+for (testnum in test_categories[1:9]){  
+
+  
+test_cat<-testnum
+#subset to columns without na
+Phenodat_no_NA<-Phenodat[ifelse(is.na(Phenodat[,test_cat]), F, T),]
+str(Phenodat_no_NA)
+#Demographics
+listVars <- c("Gender","Age", "Ethnicity","BMI","Tobacco")
+catVars <- c("Ethnicity","Tobacco")
+#table1 <- CreateTableOne(vars = listVars, data = Phenodat_no_NA, factorVars = catVars,strata=c(test_cat),includeNA = T)
+#table1print<-print(table1)
+#write.table(table1print, file=paste(P4_output_dir,"Limma_",testnum,"_Demographics.csv",sep=""),row.names=T,quote=FALSE,sep = "\t")
+
+#Make lumibatchobject
+GX_lumi_object<-eset_linear_adj
+#Exprs data
+GX_exprs<-exprs(GX_lumi_object)
+#fdata
+featureData<-fData(GX_lumi_object)
+#fdata reduce
+fDataReduce<-featureData[featureData$TargetID%in%P1_dp_sig$TargetID,]
+#fdata back in
+fData(GX_lumi_object)<-fDataReduce
+#remove samples and genes and put back into lumibatch
+exprs(GX_lumi_object)<-GX_exprs[fDataReduce$nuID,Phenodat_no_NA$sampleID]
+
+print(paste(testnum,"Lumibatch done",sep=" "))
+#Phenodata into lumi
+pData(GX_lumi_object)<-Phenodat_no_NA
+
+Med <- factor(Phenodat_no_NA[,test_cat])
+
+
+#Design Matrix
+design = model.matrix(~0+Med)   
+
+
+
+## Limma lmFit
+fit <- lmFit(GX_lumi_object, design)
+
+## Limma makeContrasts 
+contrasts <- makeContrasts(paste(colnames(design)[1],"-",colnames(design)[2],sep=""), levels=design)
+
+## Limma eBayes on makeContrasts
+contrast.fit <- contrasts.fit(fit, contrasts)
+contrast.fit <- eBayes(contrast.fit)
+
+# Limma topTable
+top_de_genes <- topTable(contrast.fit, coef=1, number=5000,adjust.method="fdr",p.value=1,confint=TRUE)
+
+
+# tidy up
+top_de_genes$logFC <- round(top_de_genes$logFC,2)
+top_de_genes$CI.L <- round(top_de_genes$CI.L,2)
+top_de_genes$CI.R <- round(top_de_genes$CI.R,2)
+top_de_genes$AveExpr <- round(top_de_genes$AveExpr,2)
+top_de_genes$t <- round(top_de_genes$t,2)
+top_de_genes$P.Value <- signif(top_de_genes$P.Value,3)
+top_de_genes$adj.P.Val <- signif(top_de_genes$adj.P.Val,3)
+top_de_genes$B <- round(top_de_genes$B,2)
+
+write.table(top_de_genes, file=paste(P4_output_dir,prefix,"Limma_",testnum,"_Medication_test_full.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+print(paste(testnum,"write to file done",sep=" "))
+
+de_res <- top_de_genes
+table(de_res$SIG_DE)
+de_res <- de_res %>% 
+  mutate(SIG_DE=adj.P.Val <=0.05, 
+         LogFC_DIRECTION=ifelse(logFC >= 0, "up-regulated",
+                          ifelse(logFC < 0, "down-regulated", "no-change")),
+         LogFC_BIOLOCICAL=ifelse(logFC >= 0.1, "up-regulated",
+                         ifelse(logFC <= -0.1, "down-regulated", "no-sig-change")),
+         PROBE_KEEP=ifelse( grepl("^LOC",TargetID),"DROP",
+                       ifelse( grepl("^HS\\.",TargetID), "DROP","KEEP"))
+         ) %>% mutate(Sig_LogFC_probes = ifelse(SIG_DE==TRUE & LogFC_BIOLOCICAL != "no-sig-change","Diffexprs","BACKGROUND"))
+
+
+datatoplot<- de_res %>% filter(PROBE_KEEP=="KEEP")
+
+names(datatoplot)
+write.table(datatoplot[,c(1:2,36:43,3:35)], file=paste(P4_output_dir,prefix,"Limma_",testnum,"_Medication_test_filtered_cleaned.tsv",sep=""),row.names=FALSE,quote=FALSE,sep = "\t")
+print(paste(testnum,"write to file done",sep=" "))
+
+
+##should probably add another table containing up and down regulated probes for each file
+
+filename <- paste("Volcanoplot",testnum,sep="")
+titlename <- paste("Volcanoplot of",testnum,sep=" ")
+jpeg(file = paste(P4_figs_dir,prefix,filename,".jpeg",sep=""), pointsize = 20, width = 1500, height = 1300)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main=paste(titlename,"Differentially Expressed Probes",sep=" "), xlim=c(-1.5,1.5)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+# Label points with the textxy function from the calibrate plot
+with(datatoplot [c(1:30),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+dev.off()
+
+pdf(paste(P4_figs_dir,prefix,filename,".pdf",sep=""), width = 15, height = 15,pointsize=10)
+with(datatoplot, plot(logFC, -log10(P.Value), pch=20, main=paste(titlename,"Differentially Expressed Probes",sep=" "), xlim=c(-1.5,1.5)))
+
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(datatoplot, logFC >= 0 ), points(logFC, -log10(P.Value), pch=20, col="navy"))
+with(subset(datatoplot, logFC <= 0 ), points(logFC, -log10(P.Value), pch=20, col="darkgreen"))
+with(subset(datatoplot, Sig_LogFC_probes =="BACKGROUND" ), points(logFC, -log10(P.Value), pch=20, col="firebrick"))
+
+# Label points with the textxy function from the calibrate plot
+with(datatoplot [c(1:30),], textxy(logFC, -log10(P.Value), labs=TargetID, cex=.5))
+dev.off()
+print(paste(testnum,"Volcanoplots done",sep=" "))
+
+##Chromosome mapping
+CMtitle = paste("LogFC by Chromosome for", testnum,sep=" ")
+ggplot(data = datatoplot, 
+      aes(x = CHROMOSOME, y=logFC, color=CHROMOSOME)) +
+      geom_boxplot(alpha = 0)+
+      geom_text(data=filter(datatoplot, logFC >= 0.3 |logFC <= -0.3),check_overlap = TRUE,angle=45,
+            aes(CHROMOSOME,logFC,label=SYMBOL))+
+      ggtitle(CMtitle)
+ggsave(paste(P4_figs_dir,prefix,CMtitle,".png",sep=""))
+print(paste(testnum,"Chromosome plot done",sep=" "))
+}
+
+```
+
+
+## do for loop using 
+```{r MED v AF covariate}
+
+
+Phenodat
+
+
+```
+
+
+
+
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
 #Prepare data
 ```{r prep data}
 
@@ -386,4 +565,7 @@ for(i in 1:5){
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a2d4c27737617d68932cf318180116b2fb1f39c2
